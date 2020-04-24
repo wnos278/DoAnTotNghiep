@@ -1,2 +1,2 @@
-# Báo cáo Đồ án tốt nghiệp
+# Báo cáo Đồ án môn học
 ## Nhận dạng JavaScript malware sử dụng phương pháp học máy ##
