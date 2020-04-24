@@ -1,0 +1,126 @@
+<parent>
+	<item><text>cmd.exe</text><score>30</score><type>4</type><virusname></virusname></item>
+	<item><text>system_exec</text><score>30</score><type>4</type><virusname></virusname></item>
+	<item><text>system</text><score>30</score><type>4</type><virusname></virusname></item>
+	<item><text>eval($_GET['cmd'])</text><score>30</score><type>4</type><virusname></virusname></item>
+	<item><text>eval($_POST[cmd])</text><score>30</score><type>4</type><virusname></virusname></item>
+	
+	<item><text>chroot</text><score>10</score><type>2</type><virusname></virusname></item>
+	<item><text>hacked by</text><score>10</score><type>2</type><virusname></virusname></item>
+	<item><text>mb_send_mail</text><score>10</score><type>2</type><virusname></virusname></item>
+	<item><text>mysql_list_dbs</text><score>10</score><type>2</type><virusname></virusname></item>
+	<item><text>pcntl_exec</text><score>10</score><type>2</type><virusname></virusname></item>
+	<item><text>apache_get_modules</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>escapeshellcmd</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>shell</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>shell_exec</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>chgrp</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>chmod</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>chown</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>crack_check</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>define_syslog_variables</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>dl</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>escapeshellarg</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>ftp_chmod</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>openlog</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>proc_nice</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>syslog</text><score>9</score><type>2</type><virusname></virusname></item>
+	<item><text>inject_code</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>posix_uname</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>fpassthru</text><score>15</score><type>2</type><virusname></virusname></item>
+	<item><text>ftp_nb_fput</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>ftp_rawlist</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>posix_getpwuid</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>posix_kill</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>posix_mkfifo</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>posix_setpgid</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>posix_setsid</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>posix_setuid</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>apache_child_terminate</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>apache_setenv</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>curl_multi_exec</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>ftp_login</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>passthru</text><score>15</score><type>2</type><virusname></virusname></item>
+	<item><text>pcntl_wstopsig</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>phpAds_remoteInfo</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>phpAds_XmlRpc</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>phpAds_xmlrpcDecode</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>phpAds_xmlrpcEncode</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>xmlrpc_entity_decode</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>ftp_exec</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>highlight_file</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>detcwd</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>exec</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>pcntl_fork</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>pcntl_wexitstatus</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>pcntl_wifexited</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>pcntl_wifstopped</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>popen</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>proc_terminate</text><score>8</score><type>2</type><virusname></virusname></item>
+	<item><text>proc_get_status</text><score>3</score><type>2</type><virusname></virusname></item>
+	<item><text>php_uname</text><score>3</score><type>2</type><virusname></virusname></item>
+	<item><text>phpinfo</text><score>3</score><type>2</type><virusname></virusname></item>
+	<item><text>phpversion</text><score>3</score><type>2</type><virusname></virusname></item>
+	<item><text>ftp_nlist</text><score>1</score><type>2</type><virusname></virusname></item>
+	<item><text>imap_list</text><score>1</score><type>2</type><virusname></virusname></item>
+	<item><text>crack_closedict</text><score>1</score><type>2</type><virusname></virusname></item>
+	<item><text>crack_getlastmessage</text><score>1</score><type>2</type><virusname></virusname></item>
+	<item><text>crack_opendict</text><score>1</score><type>2</type><virusname></virusname></item>
+	<item><text>curl_exec</text><score>1</score><type>2</type><virusname></virusname></item>
+	<item><text>ftp_systype</text><score>1</score><type>2</type><virusname></virusname></item>
+	<item><text>pcntl_signal</text><score>1</score><type>2</type><virusname></virusname></item>
+	
+	<item><text>base64_decode</text><score>10</score><type>3</type><virusname></virusname></item>
+	<item><text>edoced_46esab</text><score>10</score><type>3</type><virusname></virusname></item>
+	<item><text>base64_encode</text><score>10</score><type>3</type><virusname></virusname></item>
+	<item><text>json_decode</text><score>10</score><type>3</type><virusname></virusname></item>
+	<item><text>gzcompress</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzdecode</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzdeflate</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzencode</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzfile</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzgetc</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzgets</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzgetss</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzinflate</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzopen</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzpassthru</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzread</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzuncompress</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>gzwrite</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>readgzfile</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zlib_ decode</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zlib_ encode</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>ZipArchive</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>extractTo</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zip_ entry_ compressedsize</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zip_ entry_ compressionmethod</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zip_ entry_ name</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zip_ entry_ open</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zip_ entry_ read</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zip_ open</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>zip_ read</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>RarArchive</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>Phar</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>PharData</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>PharFileInfo</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>lzf_ compress</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>lzf_ decompress</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>bzcompress</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>bzdecompress</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>bzflush</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>bzopen</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>bzread</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>bzwrite</text><score>3</score><type>3</type><virusname></virusname></item>
+	<item><text>preg_replace</text><score>3</score><type>3</type><virusname></virusname></item>
+	
+
+	<item><text>\u003c\u0069\u006d\u0067\u0020\u0073\u0072\u0063</text><score>15</score><type>1</type><virusname>AjaxPHPCommand.Shell</virusname></item>
+	<item><text>href=http://www.ironwarez.info>Ironfist</text><score>15</score><type>1</type><virusname>AjaxPHPCommand.Shell</virusname></item>
+	<item><text>document.reqs.action.value='shell'</text><score>15</score><type>1</type><virusname>Antichat.Shell</virusname></item>
+	<item><text>Linux Kernel 2.6.13 - 2.6.17.4 Local Root Exploit</text><score>15</score><type>1</type><virusname>c99w4cking.shell</virusname></item>
+	<item><text>http://ayyildiz.org/images/whosonline2.gif</text><score>15</score><type>1</type><virusname>AyyildizTimAYT.Shell</virusname></item>
+	<item><text>http://ccteam.ru/files/c999sh_sources</text><score>15</score><type>1</type><virusname>c999.shell</virusname></item>
+	<item><text>http://ccteam.ru/update/c999shell</text><score>15</score><type>1</type><virusname>c999.shell</virusname></item>
+	<item><text>($TransferFile =~ m/^\//)))</text><score>15</score><type>1</type><virusname>cgi.shell</virusname></item>
+</parent>
