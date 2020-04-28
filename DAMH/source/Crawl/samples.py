@@ -14,8 +14,8 @@ def put_sample(_dir): # folder name
         try:
             with open(__dir, 'r', encoding="utf-8") as content_file:
                 content = content_file.read()
-
                 #read sha256
+                
         except:
             continue
         flag = True
