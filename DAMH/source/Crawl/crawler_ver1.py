@@ -16,6 +16,13 @@ def random_name():
     import string 
     return ''.join(random.choice(string.ascii_lowercase) for i in range(64))
 
+def sha256_cal(filename):
+    sha256_hash = hashlib.sha256()
+    with open(filename,"rb") as f:
+        for byte_block in iter(lambda: f.read(4096),b""):
+            sha256_hash.update(byte_block)
+        return (sha256_hash.hexdigest())
+
 def main():
     temp = []
     list_link = ["https://google.com", "https://youtube.com", "https://tmall.com", 

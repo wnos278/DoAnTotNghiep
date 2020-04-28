@@ -1,0 +1,4 @@
+#define MY_FILE_VERSION 1,0,0,2 
+#define MY_PRODUCT_VERSION 1,0,0,2 
+#define SZ_MY_FILE_VERSION "1.0.0.2" 
+#define SZ_MY_PRODUCT_VERSION "1.0.0.2" 

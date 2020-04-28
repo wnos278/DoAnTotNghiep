@@ -263,11 +263,6 @@ LRESULT DownloadURL(LPCTSTR szURL, LPCTSTR szFileName, HWND wndParent, LPCTSTR s
 
 			// Save data to file
 			WriteFile(hFile, buffer, dwReadSize, &dwWritten, NULL);
-			//if (dwTotalSize && wndParent)
-			//{
-			//	// callback function to show downloading progress
-			//	//DisplayProgess(wndParent, dwTotalReadSize, dwTotalSize);
-			//}
 		}
 		else
 			break;

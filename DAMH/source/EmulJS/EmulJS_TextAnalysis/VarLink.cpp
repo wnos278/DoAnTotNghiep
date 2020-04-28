@@ -105,8 +105,6 @@ bool CVarLink::ReplaceWith(CVar *pVNew)
 			AddListPointToStack(this);
 		if (m_pVar == m_pVRootStack)
 			RemoveFromListPointToStack(this);
-// 		if (m_bOwned)
-// 			RemoveTempStack(pVNew);
 #endif
 		try 
 		{
@@ -117,8 +115,6 @@ bool CVarLink::ReplaceWith(CVar *pVNew)
 		{
 			return false;
 		}
-		
-		//pVOld->Unref();
 	}
 	else 
 		throw new CRuntimeException("Bien khong duoc phep dinh nghia lai");

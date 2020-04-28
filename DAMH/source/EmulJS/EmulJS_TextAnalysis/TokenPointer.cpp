@@ -389,10 +389,6 @@ string CTokenPointer::GetTokenStr(int nToken)
 	}
 
 	return sReturn + (char)nToken;
-
-	/*ostringstream msg;
-	msg << "?[" << token << "]";
-	return msg.str();*/
 }
 //------------------------------------------------------------------------------
 // Khoi phuc token ve trang thai ban dau

@@ -59,7 +59,7 @@ int main(void)
 
 	// Thu muc chua mau can test
 	_stprintf_s(wszPathFile, _T(
-		"H:\\DoAnTotNghiep\\DAMH\\source\\EmulJS\\EmulJS_TextAnalysis\\mauloi"
+		"H:\\DoAnTotNghiep\\DAMH\\source\\HeurFS\\test\\New folder"
 	));
 	_CrtDumpMemoryLeaks();
 
