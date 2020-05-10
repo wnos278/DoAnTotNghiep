@@ -94,7 +94,7 @@ public:
 	//--------------------------------------------------------------------------
 	// run Programe with szCode
 	//--------------------------------------------------------------------------
-	void Execute(const string &sCode, bool bExecute = true);
+	void Execute(const string &sCode);
 
 	CVarLink* EvaluateComplex(const string &sCode);
 
@@ -163,11 +163,9 @@ public:
 	bool CProgramJs::IsCodeJavaScript(const string &sCode);
 
 	// Thuc hien ham luu trong pVLFuncCall
-	CVarLink* FunctionCall(bool &execute, CVarLink *pVLFuncCall, CVar *pVParent,
-		bool bExecuteInEval = false);
+	CVarLink* FunctionCall(CVarLink *pVLFuncCall, CVar *pVParent);
 
-	CVarLink *RunFunction(CVarLink *pVLFunc, CVar *pVParent, CVar*pVArgumentsValue,
-		bool bExecuteInEval = false);
+	CVarLink *RunFunction(CVarLink *pVLFunc, CVar *pVParent, CVar*pVArgumentsValue);
 
 	void AddFuncCallBackBySetInterval(CVar* pVarFunction);
 	BOOL CheckFuncCallBackBySetInterval(CVar* pVarFunction);
@@ -178,10 +176,6 @@ public:
 	bool IsRunInTryCatch();
 	void SetMsgRunInTryCatch(int nTypeException, string sId, CVar* pVData);
 	void CleanMsgRunInTryCatch();
-	bool CheckVirusJSQE(string sCodeJsQE);
-	bool CheckVirusDownloader(string sCodeJsDr);
-	bool CheckVirusRedirectLink(string sCodeJSLink);
-	bool CheckEncodeJS(string sJSCode);
 	string XuLyChuoiTinh(string sCodeJS);
 	////////////////////////////////////////////////////////////////////////////////////////
 private:
@@ -214,18 +208,18 @@ private:
 	void	RegisterListAttrRedirect();// ham bat mau redirect
 
 	// Chuoi toan tu trong 1 cau lenh
-	CVarLink *FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVar* pVParent = NULL, bool bExecuteInEval = false);
-	CVarLink *Factor(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Unary(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Term(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Expression(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Shift(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Condition(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Logic(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Ternary(bool &execute, bool bExecuteInEval = false);
-	CVarLink *Base(bool &execute, bool bExecuteInEval = false);
-	bool BlockCode(bool &execute, bool bExecuteInEval = false);
-	bool Statement(bool &execute, bool bExecuteInEval = false);
+	CVarLink *FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent = NULL);
+	CVarLink *Factor();
+	CVarLink *Unary();
+	CVarLink *Term();
+	CVarLink *Expression();
+	CVarLink *Shift();
+	CVarLink *Condition();
+	CVarLink *Logic();
+	CVarLink *Ternary();
+	CVarLink *Base();
+	bool BlockCode();
+	bool Statement();
 	// set tat ca cac thuoc tinh con tro cua doi tuong = NULL
 	void InitNullForPropertyPointer();
 

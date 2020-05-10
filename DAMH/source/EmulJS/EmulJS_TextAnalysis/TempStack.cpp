@@ -156,7 +156,6 @@ void AddTempStack(CVarLink *pVLNew)
 //------------------------------------------------------------------------------
 void RemoveTempStack(CVarLink *pVLObjDel)
 {
-	size_t i = 0;
 	vector<CVarLink*>::iterator itor = g_AllocatedLinks.begin();
 	while( itor != g_AllocatedLinks.end() ) 
 	{
@@ -200,12 +199,7 @@ void CleanVLTempStack()
 //------------------------------------------------------------------------------
 void CleanTempStack() 
 {
-	int nSizeLink = g_AllocatedLinks.size();
-	int nSizeVar = 0;
-	bool bArrayChange = false;
 	ostringstream ssMsg;
-	CVarLink *pVLObjDelete = NULL;
-	CVar *pVObjDelete = NULL;
 
 	try 
 	{

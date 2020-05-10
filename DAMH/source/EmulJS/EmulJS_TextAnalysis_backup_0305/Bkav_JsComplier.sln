@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Bkav_JsCompiler", "Bkav_JsComplier.vcxproj", "{F2568EE8-CEE3-48BB-83F5-8E192AB78852}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DllRunTest_Emul", "..\DllRunTest_Emul\DllRunTest_Emul.vcxproj", "{03B46A7D-44F8-4290-86D4-2DDB4B14A135}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestXuLyString", "..\dsProject\TestXuLyString\TestXuLyString\TestXuLyString.vcxproj", "{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DEBUG_CALLSTACK|Win32 = DEBUG_CALLSTACK|Win32
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+		ReleaseKiemVM|Win32 = ReleaseKiemVM|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.DEBUG_CALLSTACK|Win32.ActiveCfg = DEBUG_CALLSTACK|Win32
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.DEBUG_CALLSTACK|Win32.Build.0 = DEBUG_CALLSTACK|Win32
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.Debug|Win32.Build.0 = Debug|Win32
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.Release|Win32.ActiveCfg = Release|Win32
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.Release|Win32.Build.0 = Release|Win32
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.ReleaseKiemVM|Win32.ActiveCfg = Release_LOG|Win32
+		{F2568EE8-CEE3-48BB-83F5-8E192AB78852}.ReleaseKiemVM|Win32.Build.0 = Release_LOG|Win32
+		{03B46A7D-44F8-4290-86D4-2DDB4B14A135}.DEBUG_CALLSTACK|Win32.ActiveCfg = Debug|Win32
+		{03B46A7D-44F8-4290-86D4-2DDB4B14A135}.DEBUG_CALLSTACK|Win32.Build.0 = Debug|Win32
+		{03B46A7D-44F8-4290-86D4-2DDB4B14A135}.Debug|Win32.ActiveCfg = Debug|Win32
+		{03B46A7D-44F8-4290-86D4-2DDB4B14A135}.Debug|Win32.Build.0 = Debug|Win32
+		{03B46A7D-44F8-4290-86D4-2DDB4B14A135}.Release|Win32.ActiveCfg = Release|Win32
+		{03B46A7D-44F8-4290-86D4-2DDB4B14A135}.Release|Win32.Build.0 = Release|Win32
+		{03B46A7D-44F8-4290-86D4-2DDB4B14A135}.ReleaseKiemVM|Win32.ActiveCfg = Release|Win32
+		{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}.DEBUG_CALLSTACK|Win32.ActiveCfg = Debug|Win32
+		{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}.DEBUG_CALLSTACK|Win32.Build.0 = Debug|Win32
+		{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}.Debug|Win32.Build.0 = Debug|Win32
+		{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}.Release|Win32.ActiveCfg = Release|Win32
+		{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}.Release|Win32.Build.0 = Release|Win32
+		{01C282CD-B70A-4C68-B5AA-1FCCDEDA6C5A}.ReleaseKiemVM|Win32.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

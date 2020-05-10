@@ -371,7 +371,6 @@ vector<string> CFileHtml::c_FiltersOutCodeJs(string &sCodeHtml, bool bIsRemoveCo
 	int nPosEnd = -1;
 	int nSizeCodeJSRemove = 0;
 	int nPosSignComment = 0;
-	int nPosArrayObject = 0;
 	int nSize;
 
 
@@ -569,7 +568,6 @@ vector<string> CFileHtml::c_FiltersOutCodeJsJob(string &sCodeHtml, bool bIsRemov
 	int nPosEnd = -1;
 	int nSizeCodeJSRemove = 0;
 	int nPosSignComment = 0;
-	int nPosArrayObject = 0;
 	int nSize;
 	bool bIsRemoveCodeJs2 = false;
 
@@ -863,12 +861,6 @@ map<string, string> CFileHtml::GetInfoElement(string szCodeHtmlCheck, bool &bIsV
 
 map<string, string> CFileHtml::DetectAttrsValue(string sAttrs)
 {
-	// 	regex regexCheckElement("(\\s[^>]*?id=\"" +  + "\"[^>]*?)>([^]*?)</\\1>",
-	// 		std::regex_constants::ECMAScript | std::regex_constants::icase);
-	// 
-	// 	std::sregex_iterator next(m_sCodeHtml.begin(), m_sCodeHtml.end(), regexCheckElement);
-	// 	std::sregex_iterator end;
-	// 	std::smatch smatchInnerHTMLs;
 	map<string, string> lstAttrs;
 	return lstAttrs;
 }
