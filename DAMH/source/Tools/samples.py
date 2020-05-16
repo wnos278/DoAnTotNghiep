@@ -1,3 +1,5 @@
+# Không làm gì
+
 import hashlib
  
 def sha256_cal(filename):

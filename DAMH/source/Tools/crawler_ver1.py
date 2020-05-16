@@ -22,6 +22,7 @@ def sha256_cal(filename):
     with open(filename,"rb") as f:
         for byte_block in iter(lambda: f.read(4096),b""):
             sha256_hash.update(byte_block)
+        f.close()
         return (sha256_hash.hexdigest())
 
 def main():
@@ -56,14 +57,22 @@ def main():
             fp.close()
             soup = BeautifulSoup(mystr, 'html.parser') #convert to html file
             # save to file html
-            writeToFile('.\\data\\mausach_' + random_name(), soup)
+            name = '.\\data\\mausach_' + random_name()
+            writeToFile(name, soup)
+            newName = sha256_cal(name)
+                try:
+                    # Dat lai ten file thanh sha256
+                    os.rename(name, Directory + "\\" + newName)
+                except Exception as e:
+                    print(e)
+                    continue 
         except Exception as e:
             print(e)
             list_link.remove(list_link[0])
             leng = len(list_link)
             continue
         
-        print(str(count) + "_done:" + list_link[0])
+        print(str(count) + "_done: " + list_link[0])
         list_link.remove(list_link[0])
 
         for src in soup.find_all('a'):
@@ -78,7 +87,7 @@ def main():
         # time.sleep(0.125)
         leng = len(list_link)
         count += 1
-        if (len(temp) > 2000):
+        if (len(temp) > 5000):
             temp = []
 
 if __name__ == '__main__':

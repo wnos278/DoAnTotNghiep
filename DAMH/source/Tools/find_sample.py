@@ -1,4 +1,4 @@
-# tool có nhiệm vụ trả ra tên của file có mã sha256 cần tìm
+# Tool có nhiệm vụ trả ra tên của file có mã sha256 cần tìm
 import hashlib
  
 def sha256_cal(filename):
@@ -25,4 +25,4 @@ def _filter(_dir, sha):
 
     return "eror" 
 
-print(_filter(directory), ) # them ma sha can tim
+print(_filter(directory), 'faewfaewfa') # them ma sha can tim
