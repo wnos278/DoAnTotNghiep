@@ -1780,8 +1780,20 @@ CVarLink *CProgramJs::Factor()
 				pVLValueReturn = new CVarLink(new CVar(),sNameChildThis);
 				m_sCodeSaveJS += " " + sNameChildThis + " ";
 			}
-			m_pTokenPointer->Match(']');
-			m_sCodeSaveJS += " ] ";
+			if (m_pTokenPointer->m_nTokenId == ']')
+			{
+				m_sCodeSaveJS += " ] ";
+				m_pTokenPointer->Match(']');
+			}
+			else 
+			{
+				// Them ngay 11/5/20: test xem neu khong co token id phu hop thi luu token do ra ngoai code sau do tim tiep
+				string temp(1, m_pTokenPointer->m_nTokenId);
+				m_sCodeSaveJS += " " + temp + " ";
+				m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
+			}
+
+			
 			pVLValueReturn = FactorAdvance(pVLValueReturn, pVParent);
 		}
 		else if (m_pTokenPointer->m_sTokenStr == "self")
@@ -2035,11 +2047,12 @@ CVarLink *CProgramJs::Factor()
 		pVLObjClassOrFunc = FindInScopes(sTokenPointerId);
 		if (!pVLObjClassOrFunc)
 		{
-			m_sCodeSaveJS += " " + m_pTokenPointer->m_sTokenStr + "_Undefined_Object ";
+			m_sCodeSaveJS += " _Undefined_Object ";
 			m_pTokenPointer->Match(TK_ID);
 			m_pTokenPointer->Match('(');
 			m_sCodeSaveJS += " ( ";
 			Base();
+			// co the xay ra loi
 			m_pTokenPointer->Match(')');
 			m_sCodeSaveJS += " ) ";
 			if (m_pTokenPointer->m_nTokenId == '.' ||
@@ -2086,7 +2099,18 @@ CVarLink *CProgramJs::Factor()
 		goto _COMPLETE;
 	}
 	else
-		m_pTokenPointer->Match(TK_EOF);
+	{
+		if (m_pTokenPointer->m_nTokenId == TK_EOF)
+			m_pTokenPointer->Match(TK_EOF);
+		else
+		{
+			// Them ngay 11/5/20: test xem neu khong co token id phu hop thi luu token do ra ngoai code sau do tim tiep
+			string temp(1, m_pTokenPointer->m_nTokenId);
+			m_sCodeSaveJS += " " + temp + " ";
+			m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
+		}
+	}
+		
 
 _COMPLETE:
 	return pVLReturn;
@@ -2215,28 +2239,6 @@ CVarLink *CProgramJs::Expression()
 		if (nOp == TK_PLUSPLUS || nOp == TK_MINUSMINUS) {
 			if (nOp == TK_PLUSPLUS) m_sCodeSaveJS += " ++ ";
 			if (nOp == TK_MINUSMINUS) m_sCodeSaveJS += " -- ";
-
-			//if (pVLOperandLeft && pVLOperandLeft->m_pVar)
-			//{
-			//	pVLRes->ReplaceWith(pVLOperandLeft->m_pVar->MathsOp(pVLOne->m_pVar, m_pTokenPointer->m_nTokenId == TK_PLUSPLUS ? '+' : '-'));	//exception
-			//	pVLOldValue = new CVarLink(pVLOperandLeft->m_pVar);	// luu lai gia tri cu
-
-			//	// in-place add/subtract
-			//	pVLOperandLeft->ReplaceWith(pVLRes->m_pVar);
-
-			//	pVLOperandLeft = new CVarLink(pVLOldValue->m_pVar);	// Khoi phuc gia tri cu
-			//	//
-			//	pVLTmpValue = new CVarLink(new CVar());
-			//	while (m_pTokenPointer->m_nTokenId == '*'
-			//		|| m_pTokenPointer->m_nTokenId == '/'
-			//		|| m_pTokenPointer->m_nTokenId == '%')
-			//	{
-			//		nOp = m_pTokenPointer->m_nTokenId;
-			//		m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
-			//		pVLOperandRight = Unary();
-			//	}
-
-			//}
 		}
 
 		else
@@ -2244,7 +2246,6 @@ CVarLink *CProgramJs::Expression()
 			if (nOp == '+')
 				m_sCodeSaveJS += " + ";
 			else m_sCodeSaveJS += " - ";
-
 			Term();
 		}
 	}
@@ -2826,9 +2827,14 @@ bool CProgramJs::Statement()
 			m_sCodeSaveJS += " catch ";
 			m_pTokenPointer->Match(TK_R_CATCH);
 			m_pTokenPointer->Match('(');
+			m_sCodeSaveJS += " ( ";
 			sNameVarCatch = m_pTokenPointer->m_sTokenStr;
+			//them bien exception
+			pVLTmpValue = m_lstStack.back()->FindChildOrCreate(sNameVarCatch, "bien_catch");
+			m_sCodeSaveJS += " bien_catch ";
 			m_pTokenPointer->Match(TK_ID);
 			m_pTokenPointer->Match(')');
+			m_sCodeSaveJS += " ) ";
 			Statement();
 			
 		}
@@ -2836,7 +2842,6 @@ bool CProgramJs::Statement()
 		// xu ly khoi lech finally neu co ..................................
 		if (m_pTokenPointer->m_nTokenId == TK_R_FINALLY)
 		{
-			// save "finally" keyword
 			m_sCodeSaveJS += " finally ";
 			m_pTokenPointer->Match(TK_R_FINALLY);
 			Statement();
@@ -2846,6 +2851,7 @@ bool CProgramJs::Statement()
 	else if (m_pTokenPointer->m_nTokenId == TK_R_THROW)
 	{
 		m_pTokenPointer->Match(TK_R_THROW);
+		m_sCodeSaveJS += " throw ";
 		Base();
 	}
 
@@ -2872,7 +2878,17 @@ bool CProgramJs::Statement()
 		m_pTokenPointer->Match('}');
 	}
 	else
-		m_pTokenPointer->Match(TK_EOF);
+	{
+		if (m_pTokenPointer->m_nTokenId == TK_EOF)
+			m_pTokenPointer->Match(TK_EOF);
+		else
+		{
+			// Them ngay 11/5/20: test xem neu khong co token id phu hop thi luu token do ra ngoai code sau do tim tiep
+			string temp(1, m_pTokenPointer->m_nTokenId);
+			m_sCodeSaveJS += " " + temp + " ";
+			m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
+		}
+	}
 	
 	m_pTokenPointer = pTokenParent;
 	return bResultRunStatement;

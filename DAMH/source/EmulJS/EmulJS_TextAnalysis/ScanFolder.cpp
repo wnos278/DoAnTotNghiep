@@ -59,7 +59,7 @@ int main(void)
 
 	// Thu muc chua mau can test
 	_stprintf_s(wszPathFile, _T(
-		"H:\\crawl and extract\\sample\\loi"
+		"H:\\DoAnTotNghiep\\DAMH\\data_crawl\\W32.HfsIframe"
 	));
 	_CrtDumpMemoryLeaks();
 
