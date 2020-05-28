@@ -162,12 +162,19 @@ void CProgramJs::RegisterListAttrRedirect()
 //------------------------------------------------------------------------------
 CProgramJs::CProgramJs()
 {
+	// func
 	m_nameFuncCount = 0;
-	m_nameVarCount = 0;
+	
 	indexInFunc = 0;
 	m_inFunc[indexInFunc] = false;
+	// var
+	m_nameVarCount = 0;
 	m_nameVarInFuncCount = 0;
+	//catch
+	m_nameVarCatchCount = 0;
+	m_nameVarCatchFuncCount = 0;
 	m_onreadystatechange = false;
+	m_iCountArrayElement = 0;
 	m_ForIn = false;
 	this->InitNullForPropertyPointer();
 	this->m_dwSizeData = 0;
@@ -677,7 +684,7 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 				if (pVLFunc && pVLFunc->m_sName.size() > 0)
 				{
 					// them vao stack
-					pVLFunc->m_sAliasName = "ham_co_ten" + to_string(m_nameFuncCount);
+					pVLFunc->m_sAliasName = "func" + to_string(m_nameFuncCount);
 					m_nameFuncCount += 1;
 					if (m_lstStack.size() > 0)
 						m_lstStack.back()->AddChildNoDup(pVLFunc->m_sName, pVLFunc->m_pVar, pVLFunc->m_sAliasName);
@@ -706,10 +713,10 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 					string aliasName = "";
 					if (m_inFunc[indexInFunc] == false)
 					{
-						aliasName = "bien" + to_string(m_nameVarCount);
+						aliasName = "globalVar" + to_string(m_nameVarCount);
 					}
 					else 
-						aliasName = "bien" + to_string(m_nameVarInFuncCount);
+						aliasName = "funcVar" + to_string(m_nameVarInFuncCount);
 					pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
 					if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
 						if (m_inFunc[indexInFunc] == false)
@@ -867,15 +874,14 @@ void CProgramJs::Execute(const string &sCode)
 		while (m_pTokenPointer->m_nTokenId)
 		{
 			Statement();
-			m_sCodeSaveJS += " ";
+			m_sCodeSaveJS += " ; ";
 		}
 	}
 	catch (CRuntimeException *pRE)
 	{
 		pREHandleProcess = pRE;
 	}
-	m_nameFuncCount = 0;
-	m_nameVarCount = 0;
+
 	m_sCodeSaveJS = XuLyChuoiTinh(m_sCodeSaveJS);
 	m_pTokenPointer = pTokenPointerOld;
 	m_lstStack = lstVStackOld;
@@ -965,7 +971,7 @@ void CProgramJs::ParseFunctionArguments(CVar *pVLstArgument, bool bIsReDefine)
 	{
 		pVLArg = NULL;
 		if (pVLstArgument)
-			pVLArg = pVLstArgument->AddChildNoDup(m_pTokenPointer->m_sTokenStr, NULL, "thamso" + to_string(iParamCount), TRUE);
+			pVLArg = pVLstArgument->AddChildNoDup(m_pTokenPointer->m_sTokenStr, NULL, "param" + to_string(iParamCount), TRUE);
 		iParamCount += 1;
 		m_sCodeSaveJS += " " + pVLArg->m_sAliasName + " ";
 		if (pVLArg)
@@ -997,6 +1003,7 @@ void CProgramJs::GetListChildArray(CVar *pVList)
 
 	m_pTokenPointer->Match('(');
 	m_sCodeSaveJS += " ( ";
+	m_iCountArrayElement = 0;
 	while (m_pTokenPointer->m_nTokenId != ')')
 	{
 		_snprintf_s(idx_str, sizeof(idx_str),_TRUNCATE, "%d", nIndex);
@@ -1008,11 +1015,14 @@ void CProgramJs::GetListChildArray(CVar *pVList)
 		if (m_pTokenPointer->m_nTokenId != ')')
 		{
 			m_pTokenPointer->Match(',');
-			m_sCodeSaveJS += " , ";
+			m_iCountArrayElement += 1;
 		}
 			
 		nIndex++;
 	}
+	m_sCodeSaveJS += " : ";
+	m_sCodeSaveJS += to_string(m_iCountArrayElement);
+	m_iCountArrayElement = 0;
 	m_pTokenPointer->Match(')');
 	m_sCodeSaveJS += " ) ";
 }
@@ -1242,9 +1252,9 @@ CVarLink *CProgramJs::ParseFunctionDefinition()
 			m_pTokenPointer->Match(TK_ID);	
 		}												
 		if (sFuncName == STR_TEMP_NAME)
-			pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, "ham_noname"+ to_string(m_nameFuncCount));
+			pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, "noname"+ to_string(m_nameFuncCount));
 		else
-			pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, "ham" + to_string(m_nameFuncCount));
+			pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, "func" + to_string(m_nameFuncCount));
 		m_sCodeSaveJS += " " + pVLFunc->m_sAliasName + " ";
 
 		m_nameFuncCount += 1;
@@ -1531,7 +1541,8 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 
 	while (m_pTokenPointer->m_nTokenId == '('
 		|| m_pTokenPointer->m_nTokenId == '.'
-		|| m_pTokenPointer->m_nTokenId == '[')
+		|| m_pTokenPointer->m_nTokenId == '['
+		|| m_pTokenPointer->m_nTokenId == ':')
 	{
 		if (m_pTokenPointer->m_nTokenId == '(')
 		{
@@ -1590,10 +1601,12 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 				//	'length' properly 
 				if (pVLObjectCall && pVLObjectCall->m_pVar && pVLObjectCall->m_pVar->IsArray() && sNameChild == "length")
 				{
+					m_sCodeSaveJS += " length ";
 					pVLChild = new CVarLink(new CVar(1));
 				}
 				else if (pVLObjectCall && pVLObjectCall->m_pVar && pVLObjectCall->m_pVar->IsString() && sNameChild == "length")
 				{
+					m_sCodeSaveJS += " length ";
 					pVLChild = new CVarLink(new CVar(1));
 
 				}
@@ -1607,7 +1620,10 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 			// duyet den phan tu con
 			/*pVParent = pVLObjectCall->m_pVar;
 			pVLObjectCall = pVLChild;*/
-
+			else if (pVLChild)
+			{
+				m_sCodeSaveJS += " " + pVLChild->m_sName + " ";
+			}
 			m_pTokenPointer->Match(TK_ID);
 		}
 		else if (m_pTokenPointer->m_nTokenId == '[')
@@ -1674,6 +1690,12 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 					pVLObjectCall = pVLChildInArray;*/
 			}
 		}
+		else if (m_pTokenPointer->m_nTokenId == ':')
+		{
+			// Bo sung them khai bao cau truc file json
+			m_sCodeSaveJS += " : ";
+			break;
+		}
 	}
 	if (pVLObjectBeginCall && pVLObjectCall && pVLObjectBeginCall->m_bOwned && pVLObjectCall->m_bOwned)
 		pVLReturn = pVLObjectCall;
@@ -1736,28 +1758,41 @@ CVarLink *CProgramJs::Factor()
 	}
 	if (m_pTokenPointer->m_nTokenId == TK_R_TRUE)
 	{
-		m_sCodeSaveJS += " true ";
+		if (m_iCountArrayElement == 0)
+		{
+			m_sCodeSaveJS += " true ";
+		}
 		m_pTokenPointer->Match(TK_R_TRUE);
 		return new CVarLink(new CVar(1));
 	}
 
 	if (m_pTokenPointer->m_nTokenId == TK_R_FALSE)
 	{
-		m_sCodeSaveJS += " false ";
+		if (m_iCountArrayElement == 0)
+		{
+			m_sCodeSaveJS += " false ";
+		}
 		m_pTokenPointer->Match(TK_R_FALSE);
 		return new CVarLink(new CVar(0));
 	}
 
 	if (m_pTokenPointer->m_nTokenId == TK_R_NULL)
 	{
-		m_sCodeSaveJS += " null ";
+		if (m_iCountArrayElement == 0)
+		{
+			m_sCodeSaveJS += " null ";
+		}
 		m_pTokenPointer->Match(TK_R_NULL);
 		return NULL;
 	}
 
 	if (m_pTokenPointer->m_nTokenId == TK_R_UNDEFINED)
 	{
-		m_sCodeSaveJS += " undefined ";
+		// Khong ghi ra file neu phan tu nay trong mang
+		if (m_iCountArrayElement == 0)
+		{
+			m_sCodeSaveJS += " undefined ";
+		}
 		m_pTokenPointer->Match(TK_R_UNDEFINED);
 		return new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_NULL));
 	}
@@ -1767,6 +1802,7 @@ CVarLink *CProgramJs::Factor()
 	{
 		if (m_pTokenPointer->m_sTokenStr == "this" && m_pTokenPointer->m_currCh == '[')
 		{
+			// this['function']['...']()
 			m_sCodeSaveJS += " this ";
 			m_pTokenPointer->Match(TK_ID);
 			m_pTokenPointer->Match('[');
@@ -1838,8 +1874,8 @@ CVarLink *CProgramJs::Factor()
 					if (m_lstStack.size() > 0)
 					{
 						string aliasName = "";
-						if (m_inFunc[indexInFunc] == false) aliasName = "bien" + to_string(m_nameVarCount);
-						else aliasName = "bien_ham" + to_string(m_nameVarInFuncCount);
+						if (m_inFunc[indexInFunc] == false) aliasName = "globalVar" + to_string(m_nameVarCount);
+						else aliasName = "funcVar" + to_string(m_nameVarInFuncCount);
 						pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
 						if (pVLTmpValue->m_sAliasName == aliasName)
 							if (m_inFunc[indexInFunc] == false) m_nameVarCount += 1;
@@ -1870,8 +1906,6 @@ CVarLink *CProgramJs::Factor()
 						m_sCodeSaveJS += " = ";
 						m_pTokenPointer->Match('=');
 						pVLValueInit = Base();
-						//pVLTmpValue->ReplaceWith(pVLValueInit);
-							
 					}
 					// Khai bao nhieu bien lien tiep
 					if (m_pTokenPointer->m_nTokenId == ',')
@@ -1894,14 +1928,22 @@ CVarLink *CProgramJs::Factor()
 				m_pTokenPointer->Match(TK_ID);
 				if (pVLValueReturn->m_sName != "Array")
 					pVLValueReturn = FactorAdvance(pVLValueReturn, pVParent);
+				else {
+					m_sCodeSaveJS += " Array() ";
+				}
 			}
 		}
 		return pVLValueReturn;
 	}
 	if (m_pTokenPointer->m_nTokenId == TK_INT || m_pTokenPointer->m_nTokenId == TK_FLOAT)
 	{
-		if (m_pTokenPointer->m_nTokenId == TK_INT) m_sCodeSaveJS += " int ";
-		else m_sCodeSaveJS += " float ";
+		// Check neu o trong mang thi khong ghi ra file text ma dem
+		if (m_iCountArrayElement == 0)
+		{
+			if (m_pTokenPointer->m_nTokenId == TK_INT) m_sCodeSaveJS += " int ";
+			else m_sCodeSaveJS += " float ";
+		}
+		
 		pVTmpValue = new CVar(m_pTokenPointer->m_sTokenStr,
 			((m_pTokenPointer->m_nTokenId == TK_INT) ? SCRIPTVAR_INTEGER : SCRIPTVAR_DOUBLE));
 		m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
@@ -1911,9 +1953,24 @@ CVarLink *CProgramJs::Factor()
 	if (m_pTokenPointer->m_nTokenId == TK_STR)
 	{
 		pVTmpValue = new CVar(m_pTokenPointer->m_sTokenStr, SCRIPTVAR_STRING);
-		pVLValueReturn = new CVarLink(pVTmpValue);
+		// Lay thong tin chuoi xau va so sanh xau voi cac ham trong list, neu trung thi giu nguyen
+		pVLValueReturn = FindInScopesAdvance(m_pTokenPointer->m_sTokenStr);
+		//if (pVLValueReturn) // && pVLObjectCall->m_pVar
+		//	pVLChild = pVLValueReturn->m_pVar->FindChild(sNameChild);
+		if (m_iCountArrayElement == 0)
+		{
+			if (pVLValueReturn)
+			{
+				m_sCodeSaveJS += " " + pVLValueReturn->m_sName + " ";
+			}
+			else
+			{
+				m_sCodeSaveJS += " \"string\" ";
+			}
+		}
+		
 		m_pTokenPointer->Match(TK_STR);
-		m_sCodeSaveJS += " \"string\" ";
+			
 		pVLValueReturn = FactorAdvance(pVLValueReturn, NULL);
 		return pVLValueReturn;
 	}
@@ -1978,27 +2035,31 @@ CVarLink *CProgramJs::Factor()
 		/* JSON-style array */
 		m_pTokenPointer->Match('[');
 		m_sCodeSaveJS += " [ ";
+		m_iCountArrayElement = 0;
 		while (m_pTokenPointer->m_nTokenId != ']')
 		{
 			pVLTmpValue = Base();
-			if (pVLTmpValue)
+			/*if (pVLTmpValue)
 			{
 				CVarLink* pVar = pVParent->AddChild("", pVLTmpValue->m_pVar);
 				if (pVar)
 					pVar->SetIntName(nIndexInArray);
-			}
+			}*/
 			// no need to clean here, as it will definitely be used
 			if (m_pTokenPointer->m_nTokenId != ']')
 			{
 				m_pTokenPointer->Match(',');
-				m_sCodeSaveJS += " , ";
+				//m_sCodeSaveJS += " , ";
+				m_iCountArrayElement += 1;
 			}
 					
 			nIndexInArray++;
 		}
-
+		m_sCodeSaveJS += " : ";
+		m_sCodeSaveJS += to_string(m_iCountArrayElement);
 		m_pTokenPointer->Match(']');
 		m_sCodeSaveJS += " ] ";
+		m_iCountArrayElement = 0;
 		pVLValueReturn = new CVarLink(pVParent);
 		pVLValueReturn = FactorAdvance(pVLValueReturn, pVParent);
 		return pVLValueReturn;
@@ -2047,7 +2108,7 @@ CVarLink *CProgramJs::Factor()
 		pVLObjClassOrFunc = FindInScopes(sTokenPointerId);
 		if (!pVLObjClassOrFunc)
 		{
-			m_sCodeSaveJS += " _Undefined_Object ";
+			m_sCodeSaveJS += " _UO "; // Undefined Object
 			m_pTokenPointer->Match(TK_ID);
 			m_pTokenPointer->Match('(');
 			m_sCodeSaveJS += " ( ";
@@ -2336,8 +2397,8 @@ CVarLink *CProgramJs::Logic()
 		|| m_pTokenPointer->m_nTokenId == '|'
 		|| m_pTokenPointer->m_nTokenId == '^'
 		|| m_pTokenPointer->m_nTokenId == TK_ANDAND
-		|| m_pTokenPointer->m_nTokenId == TK_OROR
-		|| m_pTokenPointer->m_nTokenId == ',')
+		|| m_pTokenPointer->m_nTokenId == TK_OROR)
+		//|| m_pTokenPointer->m_nTokenId == ',')
 	{
 		nOp = m_pTokenPointer->m_nTokenId;
 		if (nOp == '&') m_sCodeSaveJS += " & ";
@@ -2346,7 +2407,8 @@ CVarLink *CProgramJs::Logic()
 		if (nOp == TK_ANDAND) m_sCodeSaveJS += " && ";
 		if (nOp == TK_OROR) m_sCodeSaveJS += " || ";
 		// Token , duoc them vao de khai bao cau truc dac biet
-		if (nOp == ',') m_sCodeSaveJS += " , ";
+		
+		//if (nOp == ',') m_sCodeSaveJS += " , ";
 		m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
 		pVLOperandRight = Condition();
 	}
@@ -2494,7 +2556,7 @@ bool CProgramJs::Statement()
 		|| m_pTokenPointer->m_nTokenId == TK_R_NULL)
 	{
 		pVLTmpValue = Base();
-		m_pTokenPointer->Match(';');
+		m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
 	}
 
 	//----------------------------------------------------------------------
@@ -2527,10 +2589,10 @@ bool CProgramJs::Statement()
 				string aliasName = "";
 				if (m_inFunc[indexInFunc] == false)
 				{
-					aliasName = "bien" + to_string(m_nameVarCount);
+					aliasName = "globalVar" + to_string(m_nameVarCount);
 				}
 				else
-					aliasName = "bien_ham" + to_string(m_nameVarInFuncCount);
+					aliasName = "funcVar" + to_string(m_nameVarInFuncCount);
 				pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
 				if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
 					if (m_inFunc[indexInFunc] == false)
@@ -2573,7 +2635,8 @@ bool CProgramJs::Statement()
 				break;
 			}
 		}
-		m_pTokenPointer->Match(';');
+		// Thuong thi Match tokenID la dau ;
+		m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
 
 	}
 
@@ -2656,10 +2719,10 @@ bool CProgramJs::Statement()
 					string aliasName = "";
 					if (m_inFunc[indexInFunc] == false)
 					{
-						aliasName = "bien" + to_string(m_nameVarCount);
+						aliasName = "globalVar" + to_string(m_nameVarCount);
 					}
 					else
-						aliasName = "bien_ham" + to_string(m_nameVarInFuncCount);
+						aliasName = "funcVar" + to_string(m_nameVarInFuncCount);
 					pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
 					if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
 						if (m_inFunc[indexInFunc] == false)
@@ -2803,7 +2866,6 @@ bool CProgramJs::Statement()
 				m_lstStack.back()->AddChildNoDup(pVLTmpValue->m_sName, pVLTmpValue->m_pVar, pVLTmpValue->m_sAliasName);
 				m_lstStack.push_back(pVLTmpValue->m_pVar);
 			}
-					
 		}
 		BlockCode();
 		indexInFunc -= 1;
@@ -2830,8 +2892,24 @@ bool CProgramJs::Statement()
 			m_sCodeSaveJS += " ( ";
 			sNameVarCatch = m_pTokenPointer->m_sTokenStr;
 			//them bien exception
-			pVLTmpValue = m_lstStack.back()->FindChildOrCreate(sNameVarCatch, "bien_catch");
-			m_sCodeSaveJS += " bien_catch ";
+			
+			if (m_lstStack.size() > 0)
+			{
+				// sontdc
+				string aliasName = "";
+				if (m_inFunc[indexInFunc] == false)
+				{
+					aliasName = "globalCatchVar" + to_string(m_nameVarCatchCount);
+				}
+				else
+					aliasName = "catchVar" + to_string(m_nameVarCatchFuncCount);
+				pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
+				if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
+					if (m_inFunc[indexInFunc] == false)
+						m_nameVarCatchCount += 1;
+					else m_nameVarCatchFuncCount += 1;
+					m_sCodeSaveJS += " " + pVLTmpValue->m_sAliasName + " ";
+			}
 			m_pTokenPointer->Match(TK_ID);
 			m_pTokenPointer->Match(')');
 			m_sCodeSaveJS += " ) ";
@@ -2979,6 +3057,36 @@ CVarLink *CProgramJs::FindInScopes(const string &sChildName)
 	return NULL;
 
 }
+
+//------------------------------------------------------------------------------	
+/// Finds a child, looking recursively up the m_listStack
+//------------------------------------------------------------------------------	
+CVarLink *CProgramJs::FindInScopesAdvance(const string &sChildName)
+{
+	int nIndex;
+	CVarLink *pVL = NULL;
+	CVarLink *pVLFirst = NULL;
+	for (nIndex = m_lstStack.size() - 1; nIndex >= 0; nIndex--)
+	{
+		pVL = m_lstStack[nIndex]->FindChild(sChildName);
+		if (!pVL)
+		{
+			pVLFirst = m_lstStack[nIndex]->m_pVLFirstChild;
+			while (pVLFirst != NULL)
+			{
+				pVL = pVLFirst->m_pVar->FindChild(sChildName);
+				if (pVL)
+					return pVL;
+				pVLFirst = pVLFirst->m_pNextSibling;
+			}
+
+		}
+		else return pVL;
+	}
+	return NULL;
+
+}
+
 
 //------------------------------------------------------------------------------	
 /// Look up in any parent classes of the given object
@@ -3173,10 +3281,13 @@ bool EmulJS(SCANRESULT* pResult, LPVOID pBuffDataHtml, DWORD dwSizeBuf)
 				}
 				if (sCodeJs.size() > 0)
 				{
-					sFinalCodeJS += g_pProgramJs->m_sCodeSaveJS;
-					sFinalCodeJS += " ";
-				}
+					if (g_pProgramJs->m_sCodeSaveJS.size() > 5)
+					{
+						sFinalCodeJS += g_pProgramJs->m_sCodeSaveJS;
+						sFinalCodeJS += " ";
+					}
 					
+				}
 			}
 
 			// WRITE FILE

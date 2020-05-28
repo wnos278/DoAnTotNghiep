@@ -232,7 +232,7 @@ private:
 
 	// Finds a child, looking recursively up the m_listStack
 	CVarLink*	FindInScopes(const string &sChildName);
-
+	CVarLink* FindInScopesAdvance(const string &sChildName);
 	// Look up in any parent classes of the given object
 	CVarLink*	FindInParentClasses(CVar *pVObject, const string &sName);
 
@@ -244,9 +244,12 @@ public:
 private:
 	int m_nameFuncCount;
 	int m_nameVarCount;
+	int m_nameVarCatchCount;
+	int m_nameVarCatchFuncCount;
 	bool m_inFunc[20];
 	int indexInFunc;
 	int m_nameVarInFuncCount;
+	int m_iCountArrayElement;
 };
 
 #endif 

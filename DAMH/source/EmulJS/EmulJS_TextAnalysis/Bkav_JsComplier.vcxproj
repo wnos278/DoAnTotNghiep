@@ -487,7 +487,6 @@
     <ClInclude Include="md5.h" />
     <ClInclude Include="ProgramJs.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="RulesCheckVirus.h" />
     <ClInclude Include="RuntimeException.h" />
     <ClInclude Include="APISupport.h" />
     <ClInclude Include="sha256.h" />
