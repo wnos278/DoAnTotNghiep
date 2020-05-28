@@ -11,7 +11,7 @@ file_list = os.listdir(path)
 DirectoryClean = path
 
 # tao thu muc loc ra cac file khac nhau ve md5
-# os.mkdir(DirectoryClean + "\\res")
+os.mkdir(DirectoryClean + "\\res")
 bRet = False
 i = 0
 arr_checktrungfile= []
@@ -37,7 +37,7 @@ for b in range(len(file_list)):
         # 
         MD5FullFile.append(md5_returned)
         # copy nhung file khac nhau md5 sang day - comment neu chi dem
-        # copyfile(DirectoryClean+'\\'+file_list[i], DirectoryClean + '\\res\\' + file_list[i])
+        copyfile(DirectoryClean+'\\'+file_list[i], DirectoryClean + '\\res\\' + file_list[i])
     i+=1   
 
 # print(len(MD5FullFile))

@@ -44,7 +44,7 @@ def FixHTMLCrawlSample(path):
                     # Thay thế ký tự kết thúc thành ""
                     new_content = contents[0].replace('\x00', '').lower()
                     # Thay thế ký tự
-                    new_content = new_content.replace("\"html,", "")
+                    new_content = new_content.replace("html,\"", "")
                     f_new.write(new_content)
 
                     for content in contents[1:len(contents)-1]:
@@ -58,8 +58,8 @@ def FixHTMLCrawlSample(path):
                     # Thay thế ký tự kết thúc thành ""
                     new_content = contents[len(contents)-1].replace('\x00', '').lower()
                     # Thay thế ký tự
-                    new_content = new_content.replace("\"", "")
-                    f_new.write(new_content)
+                    new_content = new_content.replace("\"\"", "\"")
+                    f_new.write(new_content[:len(new_content)-1])
                     # Đóng file temp
                     f_new.close()
                 f.close()
