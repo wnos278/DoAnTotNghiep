@@ -1377,7 +1377,7 @@ CVarLink *CProgramJs::RunFunction(CVarLink *pVLFunc, CVar *pVParent, CVar* pVArg
 // M?c dích:	Thêm 1 d?i tu?ng Function du?c cài d?t CallBack theo th?i gian vào 
 //				danh sách.
 // ----------------
-// Vào:			Con tr? d? li?u d?i tu?ng function.
+// Vào:			Con trỏ dữ liệu đối tượng function;
 //------------------------------------------------------------------------------
 void CProgramJs::AddFuncCallBackBySetInterval(CVar* pVarFunction)
 {

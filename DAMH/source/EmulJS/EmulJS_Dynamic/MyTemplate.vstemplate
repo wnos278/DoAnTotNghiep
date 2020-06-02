@@ -1,0 +1,49 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Project">
+  <TemplateData>
+    <Name>Bkav_JsCompiler_CheckJSCode</Name>
+    <Description>&lt;No description available&gt;</Description>
+    <ProjectType>VC</ProjectType>
+    <ProjectSubType>
+    </ProjectSubType>
+    <SortOrder>1000</SortOrder>
+    <CreateNewFolder>true</CreateNewFolder>
+    <DefaultName>Bkav_JsCompiler_CheckJSCode</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <LocationField>Enabled</LocationField>
+    <EnableLocationBrowseButton>true</EnableLocationBrowseButton>
+    <Icon>__TemplateIcon.ico</Icon>
+  </TemplateData>
+  <TemplateContent>
+    <Project TargetFileName="Bkav_JsComplier.vcxproj" File="Bkav_JsComplier.vcxproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="false" TargetFileName="$projectname$.vcxproj.filters">Bkav_JsComplier.vcxproj.filters</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="dllMain.cpp">dllMain.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="RulesCheckVirus.cpp">RulesCheckVirus.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ScanFolder.cpp">ScanFolder.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="FileVersion.txt">FileVersion.txt</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="DownloadURL.cpp">DownloadURL.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="RuntimeException.cpp">RuntimeException.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TempStack.cpp">TempStack.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TokenPointer.cpp">TokenPointer.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Var.cpp">Var.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="VarLink.cpp">VarLink.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ProgramJs.cpp">ProgramJs.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="APISupport.cpp">APISupport.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="FileHtml.cpp">FileHtml.cpp</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="FunctionExport.h">FunctionExport.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="RulesCheckVirus.h">RulesCheckVirus.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="FileVersion.h">FileVersion.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="resource.h">resource.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="DownloadURL.h">DownloadURL.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="WinHTTPWrapper.h">WinHTTPWrapper.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="APISupport.h">APISupport.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="ProgramJs.h">ProgramJs.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="RuntimeException.h">RuntimeException.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="TokenPointer.h">TokenPointer.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Var.h">Var.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="VarLink.h">VarLink.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="DATA_DEF.h">DATA_DEF.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="FileHtml.h">FileHtml.h</ProjectItem>
+      <ProjectItem ReplaceParameters="false" TargetFileName="Bkav_JsCompiler.rc">Bkav_JsCompiler.rc</ProjectItem>
+    </Project>
+  </TemplateContent>
+</VSTemplate>
