@@ -59,7 +59,9 @@ int main(void)
 
 	// Thu muc chua mau can test
 	_stprintf_s(wszPathFile, _T(
-		"H:\\DoAnTotNghiep\\DAMH\\source\\mau loi"
+		//"D:\\Downloads\\mauquet26_5_20\\mauvirus\\chiara2\\virus2"
+		//"D:\\Downloads\\mauquet26_5_20\\mauvirus\\chiara2\\loi2"
+		"C:\\Users\\sontdc\\Desktop\\virus2"
 	));
 	_CrtDumpMemoryLeaks();
 

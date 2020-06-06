@@ -40,6 +40,7 @@ using namespace std;
 
 #define  STACK_SIZE		256*1024
 
+
 //==============================================================================
 // Name: CProgrameJS
 // Description: Main Class - read szCode from file.js, compile szCode
@@ -241,6 +242,7 @@ private:
 public:
 	string m_sCodeSaveJS;
 	string m_sExportFileName;
+
 private:
 	int m_nameFuncCount;
 	int m_nameVarCount;
