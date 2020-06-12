@@ -1928,11 +1928,12 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 			// exception neu khong tim duoc ham trong stack.
 			if (m_pTokenPointer->m_nTokenId == '(')
 			{
-				// lưu thông tin hàm chuẩn bị được gọi
-				string sNameOfFunc = pVLObjectCall->m_sName;
+				// luu ten ham goi
+				if (pVLObjectCall->m_sAliasName != "")
+					m_sCodeJS += " " + pVLObjectCall->m_sAliasName +"  ";
+				else 
+					m_sCodeJS += " " + pVLObjectCall->m_sName + " ";
 				pVLObjectCall = FunctionCall(bExecute, pVLObjectCall, pVParent, bExecuteInEval);
-				// lấy thông tin kết quả trả về của hàm trên đỉnh stack
-				// pop hàm đó ra khỏi stack
 				pVLObjectBeginCall = pVLObjectCall;
 
 			}
@@ -2677,7 +2678,7 @@ CVarLink *CProgramJs::Expression(bool &bExecute, bool bExecuteInEval)
 				{
 					pVLRes->ReplaceWith(pVLOperandLeft->m_pVar->MathsOp(pVLOne->m_pVar, nOp == TK_PLUSPLUS ? '+' : '-'));	//exception
 					pVLOldValue = new CVarLink(pVLOperandLeft->m_pVar);	// luu lai gia tri cu
-
+					
 					// in-place add/subtract
 					pVLOperandLeft->ReplaceWith(pVLRes->m_pVar);
 
@@ -2748,6 +2749,7 @@ CVarLink *CProgramJs::Shift(bool &bExecute, bool bExecuteInEval)
 		{
 			nOp = m_pTokenPointer->m_nTokenId;
 			m_pTokenPointer->Match(nOp);
+			
 			pVLOperandRight = Expression(bExecute, bExecuteInEval);
 			if (pVLOperandRight && pVLOperandRight->m_pVar)
 				iValue = pVLOperandRight->m_pVar->GetInt();
