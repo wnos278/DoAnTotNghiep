@@ -9,7 +9,7 @@
 
 #include <windows.h>
 
-
+#define DEFAULT_ALIAS_NAME ""
 //------------------------------------------------------------------------------
 #define  MAX_LEN_VIRUSNAME 100
 
@@ -24,33 +24,7 @@ typedef struct _SCANRESULT			// Nhan ket qua quet
 }SCANRESULT;
 
 //------------------------------------------------------------------------------
-#define TIME_TO_SCAN_VIRUS		(1000*1000*90)		// được phép quét vr trong 1'
-
-// Virus Name ------------------------------------------------------------------
-#define VR_NAME_DOCUMENT_WRITE	"JS.eIframeDwNMe."	// Document.write("<iframe>...") : mẫu iframe kích thước nhỏ
-#define VR_NAME_APPEND_CHILD	"JS.eIframeAcNMe."	// element.appendChild(ifr); : 
-#define VR_NAME_HIDDEN_LINK		"JS.eIframeHlNMe."	// Document.write("<style>...")
-#define VR_NAME_FACE_LIKER		"JS.eIframeFacelikerNMe." // Faceliker
-#define VR_NAME_INJECT_SCRIPT_ADSWARE	"JS.eIframeInjectAdswareNMe." // HTML.JS.Click
-#define VR_NAME_REDIRECT		"JS.eIframeRedirectNMe." // window.location...
-#define VR_NAME_REDIRECT_QE     "JS.TrojanjQuery."//Document.write("...link...")
-#define VR_NAME_DOWNLOADER      "JS.TrojanDownloader."
-#define VR_NAME_EVAL      "JS.TrojanEval."
-#define VR_NAME_FACE_STATIC     "JS.FacelikerStatic."
-#define VR_NAME_TROJAN          "JS.TrojanStatic."
-//------------------------------------------------------------------------------
-
-// Virus Type ------------------------------------------------------------------
-#define VR_TYPE_INSERT_TAG_HIDDEN	1
-#define VR_TYPE_INSERT_STYLE_HIDDEN	2
-#define VR_TYPE_INSERT_SCRIPT_MALWARE	3
-#define VR_TYPE_DOWNLOADER   4
-#define VR_TYPE_REDIRECT   5
-#define VR_TYPE_EVAL   6
-//------------------------------------------------------------------------------
-
-// Link Virus ------------------------------------------------------------------
-#define LINK_VR_FACE_LIKER "www.facebook.com/plugins/like.php"
+#define TIME_TO_SCAN_VIRUS		(1000*1000*90)		// được phép quét vr trong 
 //------------------------------------------------------------------------------
 #define NDC_TODAY_GOODDAY "NDC - Today is a good day"
 // Virus Type ------------------------------------------------------------------

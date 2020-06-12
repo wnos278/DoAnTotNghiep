@@ -59,10 +59,10 @@ public:
 		CVar*	GetParameter(const string &sName); ///< If this is a function, get the parameter with the given name (for use by native functions)
 
 		CVarLink *FindChild(const string &sChildName); ///< Tries to find a child with the given name, may return 0
-		CVarLink *FindChildOrCreate(const string &sChildName, int nVarFlags=SCRIPTVAR_UNDEFINED); ///< Tries to find a child with the given name, or will create it with the given flags
+		CVarLink *FindChildOrCreate(const string &sChildName, const string &sAliasName = "", int nVarFlags=SCRIPTVAR_UNDEFINED); ///< Tries to find a child with the given name, or will create it with the given flags
 		CVarLink *FindChildOrCreateByPath(const string &sPath); ///< Tries to find a child with the given path (separated by dots)
-		CVarLink *AddChild(const string &sChildName, CVar *pVChild=NULL, BOOL bRemove = FALSE); ///< add child to list Child
-		CVarLink *AddChildNoDup(const string &sChildName, CVar *pVChild = NULL, BOOL bRemove = FALSE); ///< add a child overwriting any with the same name
+		CVarLink *AddChild(const string &sChildName,const string &sAliasName = "", CVar *pVChild=NULL, BOOL bRemove = FALSE); ///< add child to list Child
+		CVarLink *AddChildNoDup(const string &sChildName, const string &sAliasName = "", CVar *pVChild = NULL, BOOL bRemove = FALSE); ///< add a child overwriting any with the same name
 		void	RemoveChild(CVar *pVChild);
 		void	RemoveLink(CVarLink* &pVLTmp); ///< Remove a specific link (this is faster than finding via a child)
 		void	RemoveAllChildren();

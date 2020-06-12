@@ -528,7 +528,7 @@ void scJQuery(CVar *pVLocalStack, void *pUserData)
 	pVLReturnPrototype = pProgramJs->m_pVRootStack->FindChild("jQuery");
 	if (pVLReturnPrototype)
 	{
-		pVReturn->AddChildNoDup(STR_PROTOTYPE_CLASS, pVLReturnPrototype->m_pVar);
+		pVReturn->AddChildNoDup(STR_PROTOTYPE_CLASS, DEFAULT_ALIAS_NAME, pVLReturnPrototype->m_pVar);
 	}
 	// Them thong tin the jQuery neu truyen vao 1 doi tuong HTMLElement
 	pVLHtmlElementPrototype = pProgramJs->m_pVRootStack->FindChild("element");
@@ -542,10 +542,10 @@ void scJQuery(CVar *pVLocalStack, void *pUserData)
 		// Them thong tin the jQuery lien ket toi neu truyen vao String
 		sHtmlObjectName = pVHtmlElement->GetString();
 		// Lay thong tin the
-		pVReturn->AddChildNoDup(STR_INFO_OBJECT, new CVar(sHtmlObjectName));
+		pVReturn->AddChildNoDup(STR_INFO_OBJECT, DEFAULT_ALIAS_NAME, new CVar(sHtmlObjectName));
 	}
 	else if (pVHtmlElement->GetPrototypeOfObject() == pVHtmlElementPrototype){
-		pVReturn->AddChildNoDup(STR_INFO_OBJECT, pVHtmlElement);
+		pVReturn->AddChildNoDup(STR_INFO_OBJECT, DEFAULT_ALIAS_NAME, pVHtmlElement);
 	}
 
 }
@@ -603,7 +603,7 @@ void scJQueryParent(CVar *pVLocalStack, void *pUserData)
 	pVLReturnPrototype = pProgramJs->m_pVRootStack->FindChild("jQuery");
 	if (pVLReturnPrototype)
 	{
-		pVReturn->AddChildNoDup(STR_PROTOTYPE_CLASS, pVLReturnPrototype->m_pVar);
+		pVReturn->AddChildNoDup(STR_PROTOTYPE_CLASS, DEFAULT_ALIAS_NAME, pVLReturnPrototype->m_pVar);
 	}
 	// Them thong tin the jQuery neu truyen vao 1 doi tuong HTMLElement
 	pVLDocument = pProgramJs->m_pVRootStack->FindChild("document");
@@ -611,7 +611,7 @@ void scJQueryParent(CVar *pVLocalStack, void *pUserData)
 		pVDocument = pVLDocument->m_pVar;
 
 	// Them thong tin bo sung cua doi tuong jQuery
-	pVReturn->AddChildNoDup(STR_INFO_OBJECT, pVDocument);
+	pVReturn->AddChildNoDup(STR_INFO_OBJECT, DEFAULT_ALIAS_NAME, pVDocument);
 }
 
 //------------------------------------------------------------------------------
@@ -691,23 +691,6 @@ void scJQueryHide(CVar *pVLocalStack, void *pUserData)
 				{
 					// Tim kiem doi tuong the HTML trong file HTML
 					pVLHtmlElement = pProgramJs->GetInfoHtmlElementFromJQuerySelector(sJQuerySelector);
-					//if (pVLHtmlElement)
-					//{
-					//	// Kiem tra thuoc tinh hidden cua the tim duoc
-					//	bIsTagHtmlHidden = pProgramJs->CheckAttrHidden(pVLHtmlElement->m_pVar);
-					//	// Kiem tra noi dung the tim duoc xau "/like.php"
-					//	pVLInnerHTML = pVLHtmlElement->m_pVar->FindChild("innerHTML");
-					//	if (bIsTagHtmlHidden && pVLInnerHTML && pVLInnerHTML->m_pVar)
-					//	{
-					//		sInnerHTML = pVLInnerHTML->m_pVar->GetString();
-					//		/*if (sInnerHTML.find(LINK_VR_FACE_LIKER) != string::npos)
-					//		{
-					//			pRuntimeException = new CRuntimeException(VR_NAME_FACE_LIKER, EXCEPTIONID_FOUND_VIRUS, false);
-					//			pRuntimeException->SetVirusName(VR_NAME_FACE_LIKER);
-					//		}*/
-					//			
-					//	}
-					//}
 				}
 			}
 		}
@@ -1693,10 +1676,10 @@ void scElementCreateElement(CVar*pVLocalStack, void *pUserData)
 	// copy doi tuong element voi toan bo thuoc tinh
 	pVNewHtmlElement = new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT);
 	// cai dat ten cho thanh phan element
-	pVNewHtmlElement->AddChild(STR_PROTOTYPE_CLASS, pVLTmp->m_pVar);
+	pVNewHtmlElement->AddChild(STR_PROTOTYPE_CLASS, DEFAULT_ALIAS_NAME, pVLTmp->m_pVar);
 
 	transform(sNameElement.begin(), sNameElement.end(), sNameElement.begin(), ::toupper);
-	pVNewHtmlElement->AddChild("tagName", new CVar(sNameElement));
+	pVNewHtmlElement->AddChild("tagName", DEFAULT_ALIAS_NAME, new CVar(sNameElement));
 
 	pVLocalStack->SetReturnVar(pVNewHtmlElement);
 
@@ -1761,15 +1744,15 @@ void scElementGetElementById(CVar*pVLocalStack, void *pUserData)
 		if (sElementHtml.size() == 0 || sTagName.size() == 0) goto _EXIT_FUNTION;
 
 		pVNewStack = new CVar();
-		pVNewStack->AddChild("szNameElement", new CVar(sTagName));
+		pVNewStack->AddChild("szNameElement", DEFAULT_ALIAS_NAME, new CVar(sTagName));
 		
 		// Gia lap 1 doi tuong moi
 		scElementCreateElement(pVNewStack, pProgramJs);
 		pVNewElement = pVNewStack->GetParameter("return");
 
 		// Them thuoc tinh Id cho doi tuong Element
-		pVNewElement->AddChildNoDup("id", new CVar(sId));
-		pVNewElement->AddChildNoDup("innerHTML", new CVar(sInnerHtml));
+		pVNewElement->AddChildNoDup("id", DEFAULT_ALIAS_NAME, new CVar(sId));
+		pVNewElement->AddChildNoDup("innerHTML", DEFAULT_ALIAS_NAME, new CVar(sInnerHtml));
 
 		// Kiem tra virus cua doi tuong html nay
 
@@ -1779,7 +1762,7 @@ void scElementGetElementById(CVar*pVLocalStack, void *pUserData)
 			pVLTmpSearch = pVLTmpSearch->m_pVar->FindChild("body");
 		if (pVLTmpSearch && pVLTmpSearch->m_pVar)
 		{
-			pVLTmpSearch->m_pVar->AddChildNoDup(sTagName, pVNewElement);
+			pVLTmpSearch->m_pVar->AddChildNoDup(sTagName, DEFAULT_ALIAS_NAME, pVNewElement);
 		}
 
 		pVLocalStack->SetReturnVar(pVNewElement);
@@ -1831,7 +1814,7 @@ void scElementGetElementsByTagName(CVar*pVLocalStack, void *pUserData)
 			{
 				// cai dat gia tri tra ve = HTML element 
 				pVLNewElement = 
-					pVReturn->AddChild(pVLTmpElement->m_sName, pVLTmpElement->m_pVar);
+					pVReturn->AddChild(pVLTmpElement->m_sName, pVLTmpElement->m_sAliasName, pVLTmpElement->m_pVar);
 				pVLNewElement->SetIntName(nIndexInArrayReturn);
 				nIndexInArrayReturn++;
 			}
@@ -1879,7 +1862,7 @@ void scElementSetAttribute(CVar*pVLocalStack, void *pUserData)
 				// tao thuoc tinh moi cho this; 
 				// chi nhung thuoc tinh co trong prototype moi duoc gan thuoc tinh
 				bCreateNewAttr = true;
-				pVLAttr = pVThisObject->AddChild(pVLAttr->m_sName, pVLAttr->m_pVar->DeepCopy());
+				pVLAttr = pVThisObject->AddChild(pVLAttr->m_sName, pVLAttr->m_sAliasName, pVLAttr->m_pVar->DeepCopy());
 			}
 		}
 
@@ -1932,7 +1915,7 @@ void scElementAppendChild(CVar*pVLocalStack, void *pUserData)
 	CVar* pVNewElement = pVLocalStack->GetParameter("newElement");
 	CRuntimeException* pRE = NULL;
 
-	pVThisObject->AddChild(STR_NAME_HTML_ELEMENT, pVNewElement);
+	pVThisObject->AddChild(STR_NAME_HTML_ELEMENT, DEFAULT_ALIAS_NAME, pVNewElement);
 }
 
 //------------------------------------------------------------------------------
@@ -1945,11 +1928,11 @@ void scDateConstructor(CVar*pVLocalStack, void *pUserData)
 	CVarLink* pVLPrototype = NULL;
 
 	// Cai dat ngay thang mac dinh
-	pVThisObject->SetDataString("5101994");
+	pVThisObject->SetDataString("27081998");
 
 	pVLPrototype = pProgramJs->m_pVRootStack->FindChild("Date");
 	if (pVLPrototype)
-		pVThisObject->AddChild(STR_PROTOTYPE_CLASS, pVLPrototype->m_pVar);
+		pVThisObject->AddChild(STR_PROTOTYPE_CLASS, DEFAULT_ALIAS_NAME, pVLPrototype->m_pVar);
 
 	// Tra ve ngay thang mac dinh
 	pVLocalStack->SetReturnVar(pVThisObject);
@@ -2011,7 +1994,7 @@ void scDateGetTime(CVar*pVLocalStack, void *)
 //------------------------------------------------------------------------------
 void scDatetoUTCString(CVar *pVLocalStack, void *)
 {
-	scReturnString("10 10 10 1995");
+	scReturnString("16 27 08 1998");
 }
 //------------------------------------------------------------------------------
 // constructor Double
@@ -2045,7 +2028,7 @@ void scWScriptConstructor(CVar*pVLocalStack, void *pUserData)
 
 	pVLPrototype = pProgramJs->m_pVRootStack->FindChild("WScript");
 	if (pVLPrototype)
-		pVThisObject->AddChild(STR_PROTOTYPE_CLASS, pVLPrototype->m_pVar, TRUE);
+		pVThisObject->AddChild(STR_PROTOTYPE_CLASS, DEFAULT_ALIAS_NAME, pVLPrototype->m_pVar, TRUE);
 
 	// Tra ve gia tri 
 	pVLocalStack->SetReturnVar(pVThisObject);

@@ -175,13 +175,13 @@ _COMPLETE:
 //------------------------------------------------------------------------------
 // Tim lien ket bien cua 1 bien dua vao ten Neu chua co thi tao moi
 //------------------------------------------------------------------------------
-CVarLink *CVar::FindChildOrCreate(const string &sChildName, int nTypeVar) 
+CVarLink *CVar::FindChildOrCreate(const string &sChildName, const string &sAliasName, int nTypeVar) 
 {
 	CVarLink *pVarLinkFound = FindChild(sChildName);
 	if (pVarLinkFound) 
 		return pVarLinkFound;
 
-	return AddChild(sChildName, new CVar(STR_BLANK_DATA, nTypeVar));
+	return AddChild(sChildName, sAliasName, new CVar(STR_BLANK_DATA, nTypeVar));
 }
 
 //------------------------------------------------------------------------------
@@ -194,14 +194,14 @@ CVarLink *CVar::FindChildOrCreateByPath(const string &sPath)
 	if (nPosDots == string::npos)
 		return FindChildOrCreate(sPath);
 
-	return FindChildOrCreate(sPath.substr(0,nPosDots), SCRIPTVAR_OBJECT)->m_pVar->
+	return FindChildOrCreate(sPath.substr(0,nPosDots), DEFAULT_ALIAS_NAME, SCRIPTVAR_OBJECT)->m_pVar->
 		FindChildOrCreateByPath(sPath.substr(nPosDots+1));
 }
 
 //------------------------------------------------------------------------------
 // Them 1 con moi vao vi tri cuoi cung ds con
 //------------------------------------------------------------------------------
-CVarLink *CVar::AddChild(const string &sChildName, CVar *pVNewChild, BOOL bRemove)
+CVarLink *CVar::AddChild(const string &sChildName, const string &sAliasName, CVar *pVNewChild, BOOL bRemove)
 {
 	CVarLink *pVLNewChild = NULL;
 
@@ -212,7 +212,7 @@ CVarLink *CVar::AddChild(const string &sChildName, CVar *pVNewChild, BOOL bRemov
 	// if no child supplied, create one
 	if (!pVNewChild)
 		pVNewChild = new CVar();
-	pVLNewChild = new CVarLink(pVNewChild, sChildName);
+	pVLNewChild = new CVarLink(pVNewChild, sChildName, sAliasName);
 
 	// co (flag) : bao du lieu nam trong LocalStack
 	pVLNewChild->m_bOwned = true;
@@ -244,7 +244,7 @@ CVarLink *CVar::AddChild(const string &sChildName, CVar *pVNewChild, BOOL bRemov
 // Them 1 con moi vao ko trung lap voi ds con da co. Neu da co con co ten trung 
 // voi phan tu moi => thay the 
 //------------------------------------------------------------------------------
-CVarLink *CVar::AddChildNoDup(const string &sChildName, CVar *pVChild, BOOL bRemove) 
+CVarLink *CVar::AddChildNoDup(const string &sChildName, const string &sAliasName, CVar *pVChild, BOOL bRemove) 
 {
 	CVarLink *pVLChild = NULL;
 
@@ -259,7 +259,7 @@ CVarLink *CVar::AddChildNoDup(const string &sChildName, CVar *pVChild, BOOL bRem
 		pVLChild->ReplaceWith(pVChild);
 	} else 
 	{
-		pVLChild = AddChild(sChildName, pVChild, bRemove);
+		pVLChild = AddChild(sChildName, sAliasName, pVChild, bRemove);
 	}
 
 	return pVLChild;
@@ -361,7 +361,7 @@ void CVar::SetArrayIndex(int nIdx, CVar *pVValue)
 	else 
 	{
 		if (!pVValue->IsUndefined())
-			AddChild(sIdx, pVValue);
+			AddChild(sIdx, DEFAULT_ALIAS_NAME, pVValue);
 	}
 }
 
@@ -808,7 +808,7 @@ CVar *CVar::MathsOp(CVar *pVOperandRight, int nOp)
 							// them phan tu con cua B vao trong A
 							pVNewChild = new CVar();
 							pVNewChild->CopySimpleData(pVLChildB->m_pVar);
-							pVLNewChild = this->AddChild("", pVNewChild);
+							pVLNewChild = this->AddChild("", DEFAULT_ALIAS_NAME, pVNewChild);
 							pVLNewChild->SetIntName(nIndexArray);
 
 							nIndexArray++;
@@ -1030,7 +1030,7 @@ void CVar::CopyValue(CVar *pVCopy)
 			else
 				pVCopied = pVLChild->m_pVar;
 
-			AddChild(pVLChild->m_sName, pVCopied);
+			AddChild(pVLChild->m_sName, pVLChild->m_sAliasName, pVCopied);
 			pVLChild = pVLChild->m_pNextSibling;
 		}
 	}
@@ -1060,7 +1060,7 @@ CVar *CVar::DeepCopy()
 		else
 		  pVCopied = pVLChild->m_pVar;
 
-		newVar->AddChild(pVLChild->m_sName, pVCopied);
+		newVar->AddChild(pVLChild->m_sName, pVLChild->m_sAliasName, pVCopied);
 		pVLChild = pVLChild->m_pNextSibling;
 	}
 	return newVar;

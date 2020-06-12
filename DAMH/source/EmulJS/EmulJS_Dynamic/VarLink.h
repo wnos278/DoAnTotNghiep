@@ -36,7 +36,7 @@ public:
 	bool		m_bOwned;
 	int			m_iSttClass;
 
-	CVarLink(CVar *pVData, const string &sName = STR_TEMP_NAME);
+	CVarLink(CVar *pVData, const string &sName = STR_TEMP_NAME, const string &sAliasName = "");
 	CVarLink(const CVarLink &pVLBefore); ///< Copy constructor
 	~CVarLink();
 	

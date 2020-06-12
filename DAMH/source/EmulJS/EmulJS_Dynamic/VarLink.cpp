@@ -19,7 +19,7 @@ int CVarLink::m_iStt = 0;
 // -----------------------------------------------------------------------------
 // Constructor
 // -----------------------------------------------------------------------------
-CVarLink::CVarLink(CVar *pVData, const string &sName)
+CVarLink::CVarLink(CVar *pVData, const string &sName, const string &sAliasName)
 {
  #if SAFE_MEMORY
 	AddTempStack(this);
@@ -34,6 +34,7 @@ CVarLink::CVarLink(CVar *pVData, const string &sName)
 
 	this->m_bOwned = false;
 	this->m_bReDefine = true;
+	this->m_sAliasName = sAliasName;
 }
 
 // -----------------------------------------------------------------------------

@@ -41,7 +41,6 @@ using namespace std;
 #define  STACK_SIZE		256*1024
 
 
-
 struct SuspiciousFunction {
 	int countEval;
 	int countWindowSetInterval; // Dynammic Code Exec
@@ -235,14 +234,7 @@ public:
 	bool IsRunInTryCatch();
 	void SetMsgRunInTryCatch(int nTypeException, string sId, CVar* pVData);
 	void CleanMsgRunInTryCatch();
-	void Entropy(string);
-	void CountSuspiciousCommentStyle(string);
-	void CheckFunctionCall(char*, char*);
-	void ResetFeature();
-	void PreProcess(string);
-	void ExportCSV(string, string);
-	void SaveToFile(string, string);
-
+	string XuLyChuoiTinh(string sCodeJS);
 	////////////////////////////////////////////////////////////////////////////////////////
 private:
 	bool    m_onreadystatechange;
@@ -308,7 +300,10 @@ private:
 	void RemoveChildReDefine(CVar* pVRedefine);
 public:
 	string	m_sCodeJS;
-	
+	int m_countFunctionName;
+	int m_countParamName;
+	int m_countVarName;
+	int m_countFuncVarName;
 };
 
 #endif 

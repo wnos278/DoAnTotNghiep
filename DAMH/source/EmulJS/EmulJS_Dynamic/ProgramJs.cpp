@@ -80,47 +80,47 @@ void CProgramJs::InitProgramJs()
 	m_pVDoubleClass = (new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT))->Ref();
 	//	m_pVWScriptClass = (new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT))->Ref();
 
-	pVLWindow = m_pVRootStack->AddChild("window", m_pVRootStack, TRUE);
+	pVLWindow = m_pVRootStack->AddChild("window", "", m_pVRootStack, TRUE);
 	pVLWindow->SetNotReDefine();
 
 	// Phai cai dat sau khi AddChild("window"..) vao stack de ko them vao blacklist
 	CVarLink::SetRootStack(m_pVRootStack);
 
-	pVLDString = m_pVRootStack->AddChild("String", m_pVStringClass, TRUE);
-	(m_pVRootStack->AddChild("Array", m_pVArrayClass, TRUE))->SetNotReDefine();
-	(m_pVRootStack->AddChild("Object", m_pVObjectClass, TRUE))->SetNotReDefine();
-	pVLDB = m_pVRootStack->AddChild("Double", m_pVDoubleClass, TRUE);
+	pVLDString = m_pVRootStack->AddChild("String", DEFAULT_ALIAS_NAME, m_pVStringClass, TRUE);
+	(m_pVRootStack->AddChild("Array", DEFAULT_ALIAS_NAME, m_pVArrayClass, TRUE))->SetNotReDefine();
+	(m_pVRootStack->AddChild("Object", DEFAULT_ALIAS_NAME, m_pVObjectClass, TRUE))->SetNotReDefine();
+	pVLDB = m_pVRootStack->AddChild("Double", DEFAULT_ALIAS_NAME, m_pVDoubleClass, TRUE);
 
 	//Them thuoc tinh String.status----Downloader
-	m_pVLDStringStatus = pVLDString->m_pVar->AddChild("status", new CVar(200), TRUE);
+	m_pVLDStringStatus = pVLDString->m_pVar->AddChild("status", DEFAULT_ALIAS_NAME, new CVar(200), TRUE);
 	m_pVLDStringStatus->SetNotReDefine(); 
 
-	m_pVLDStringresponseText = pVLDString->m_pVar->AddChild("responseText", new CVar("responseText"), TRUE);
+	m_pVLDStringresponseText = pVLDString->m_pVar->AddChild("responseText", DEFAULT_ALIAS_NAME, new CVar("responseText"), TRUE);
 	m_pVLDStringresponseText->SetNotReDefine();
 
 	//Them thuoc tinh string.onreadystatechange ---Downloader
-	m_pVLDStringOnreadyStateChange = pVLDString->m_pVar->AddChild("onreadystatechange", new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), TRUE);
+	m_pVLDStringOnreadyStateChange = pVLDString->m_pVar->AddChild("onreadystatechange", DEFAULT_ALIAS_NAME, new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), TRUE);
 	m_pVLDStringOnreadyStateChange->SetNotReDefine();
 
 	//Them thuoc tinh String.readyState
-	m_pVLDStringreadyState = pVLDString->m_pVar->AddChild("readyState", new CVar(4), TRUE);
+	m_pVLDStringreadyState = pVLDString->m_pVar->AddChild("readyState", DEFAULT_ALIAS_NAME, new CVar(4), TRUE);
 	m_pVLDStringreadyState->SetNotReDefine();
 
 	//Them thuoc tinh double.size ----Downloader
-	m_pVLDStatus = pVLDB->m_pVar->AddChild("size", new CVar(1001), TRUE);
+	m_pVLDStatus = pVLDB->m_pVar->AddChild("size", DEFAULT_ALIAS_NAME, new CVar(1001), TRUE);
 	m_pVLDStatus->SetNotReDefine();
 
 	// Them doi tuong Html element
-	(m_pVRootStack->AddChild("element", new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE))->SetNotReDefine();
+	(m_pVRootStack->AddChild("element", DEFAULT_ALIAS_NAME, new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE))->SetNotReDefine();
 
 	// Them thuoc tinh window.onload
 	m_pVLWindowOnload =
-		m_pVRootStack->AddChild("onload", new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), TRUE);
+		m_pVRootStack->AddChild("onload", DEFAULT_ALIAS_NAME, new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), TRUE);
 	m_pVLWindowOnload->SetNotReDefine();
 
 	// Them thuoc tinh Document.onmousemove
-	pVLDcmnt = m_pVRootStack->AddChild("document", new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE);
-	m_pVLDcmtOnmousemove = pVLDcmnt->m_pVar->AddChild("onmousemove", new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE);
+	pVLDcmnt = m_pVRootStack->AddChild("document", DEFAULT_ALIAS_NAME, new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE);
+	m_pVLDcmtOnmousemove = pVLDcmnt->m_pVar->AddChild("onmousemove", DEFAULT_ALIAS_NAME, new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE);
 	m_pVLDcmtOnmousemove->SetNotReDefine();
 
 	// register default API.
@@ -168,6 +168,10 @@ CProgramJs::CProgramJs()
 {
 	m_onreadystatechange = false;
 	m_ForIn = false;
+	m_countFunctionName = 0;
+	m_countParamName = 0;
+	m_countVarName = 0;
+	m_countFuncVarName = 0;
 
 	// Khoi tao gia tri m_bEncodeJS = false va m_sCodeJS = ""
 	m_sCodeJS = "";
@@ -250,13 +254,6 @@ CProgramJs::~CProgramJs()
 #endif
 }
 
-//// Lay vi tri TagName trong chuoi string
-//int getPosStr(string szData, string szTagName, int nPosStart) {
-//
-//	transform(szData.begin(), szData.end(), szData.begin(), ::tolower);
-//	return szData.find(szTagName, nPosStart);
-//}
-
 //------------------------------------------------------------------------------
 // Loc code JS tu pBuff chua noi dung file HTML => mang cac doan code JS
 //------------------------------------------------------------------------------
@@ -273,32 +270,11 @@ void CProgramJs::SetData(LPVOID pBuffHtmlCode, DWORD dwSizeBuff)
 	if (pBuffHtmlCodeCopy == NULL)
 		throw new CRuntimeException("Error: Not Enough Mem!! File doesn't Scan!",CREATE_FILE_FALSE, false);
 
-	// Copy dữ liệu code HTML vào biến pBuffHtmlCodeCopy
 	memcpy(pBuffHtmlCodeCopy, pBuffHtmlCode, dwSizeBuff);
 	pBuffHtmlCodeCopy[dwSizeBuff] = 0;
-	sCodeHtml = ((char*)pBuffHtmlCodeCopy); // copy lại lần nữa
-	this->m_pFileHtmlProcess->SetCodeHtml(sCodeHtml); // hàm này mục đích lọc các comment trong code nhưng đã bị comment phần code đó, 
-													// hiện tại không có tác dụng gì
-	//try
-	//{
-	//	// check các chuỗi code đặc trưng có trong code, nếu có sẽ trả về loại virus
-	//	this->CheckVirusStatic(this->m_pFileHtmlProcess->GetCodeHtml());
-	//}
-	//catch (CRuntimeException *pRE)
-	//{
-	//	// lấy giá trị lỗi trả về
-	//	nErrId = pRE->GetErrId();
-	//	if (
-	//		nErrId == EXCEPTIONID_FOUND_VIRUS
-	//		|| nErrId == NOT_ENOUGH_MEMORY
-	//		|| nErrId == EXCEPTION_TIME_OUT_SCAN
-	//		)
-	//	{
-	//		SAFE_DELETE_ARRAY(pBuffHtmlCodeCopy);
-	//		throw pRE;	// Phat hien virus => chuyen tiep exception
-	//	}
-	//	SAFE_DELETE(pRE)
-	//}
+	sCodeHtml = ((char*)pBuffHtmlCodeCopy);
+	this->m_pFileHtmlProcess->SetCodeHtml(sCodeHtml);
+	
 	SAFE_DELETE_ARRAY(pBuffHtmlCodeCopy);
 
 	m_lstsCodeJsJob = this->m_pFileHtmlProcess->FiltersOutCodeJsJob();
@@ -306,10 +282,9 @@ void CProgramJs::SetData(LPVOID pBuffHtmlCode, DWORD dwSizeBuff)
 	m_lstsCodeJs = this->m_pFileHtmlProcess->FiltersOutCodeJs();
 	if (m_lstsCodeJsJob.size() > 0)
 	for (size_t i = 0; i < m_lstsCodeJsJob.size(); i++)
-		{
-			// vòng lặp thêm code trong thẻ <job> vào danh sách code trong thẻ script
-			m_lstsCodeJs.push_back(m_lstsCodeJsJob.at(i));
-		}
+	{
+		m_lstsCodeJs.push_back(m_lstsCodeJsJob.at(i));
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -318,6 +293,12 @@ void CProgramJs::SetData(LPVOID pBuffHtmlCode, DWORD dwSizeBuff)
 //------------------------------------------------------------------------------
 BOOLEAN CProgramJs::ResetDatabase()
 {
+	// Reset count variable 
+	m_countFunctionName = 0;
+	m_countParamName = 0;
+	m_countVarName = 0;
+	m_countFuncVarName = 0;
+
 	BOOLEAN bResult = FALSE;
 	INT i = 0, nSize = 0;
 	CVarLink* pVLHtmlBody = NULL;
@@ -532,7 +513,7 @@ CVarLink* CProgramJs::CreateNewHTMLElement(map<string, string> mapInfoHtmlElemnt
 		pVLReturn = new CVarLink(new CVar("", SCRIPTVAR_OBJECT), STR_NAME_HTML_ELEMENT);
 		if (pVLReturn->m_pVar)
 		{
-			pVLReturn->m_pVar->AddChild(STR_PROTOTYPE_CLASS, pVLHtmlElementPrototype->m_pVar);
+			pVLReturn->m_pVar->AddChild(STR_PROTOTYPE_CLASS, DEFAULT_ALIAS_NAME, pVLHtmlElementPrototype->m_pVar);
 		}
 
 		for (itOfMap = mapInfoHtmlElemnt.begin(); itOfMap != mapInfoHtmlElemnt.end(); ++itOfMap)
@@ -540,7 +521,7 @@ CVarLink* CProgramJs::CreateNewHTMLElement(map<string, string> mapInfoHtmlElemnt
 			sKey = itOfMap->first;
 			sValue = itOfMap->second;
 			if (sKey.size() > 0 && sValue.size() > 0)
-				pVLReturn->m_pVar->AddChild(sKey, new CVar(sValue));
+				pVLReturn->m_pVar->AddChild(sKey, DEFAULT_ALIAS_NAME, new CVar(sValue));
 		}
 	}
 _COMPLETE:
@@ -801,15 +782,15 @@ void CProgramJs::SetMsgRunInTryCatch(int nTypeException, string sId, CVar* pData
 		{
 			// them noi dung vao bien luu exception
 			pVLMsgException->ReplaceWith(new CVar(CREATE_MSG_ID_UNDEFINED(sId)));
-			pVLMsgException->m_pVar->AddChild("name", new CVar("ReferenceError"));
-			pVLMsgException->m_pVar->AddChild("message", new CVar(sId + " is not defined"));
+			pVLMsgException->m_pVar->AddChild("name", DEFAULT_ALIAS_NAME, new CVar("ReferenceError"));
+			pVLMsgException->m_pVar->AddChild("message", DEFAULT_ALIAS_NAME,  new CVar(sId + " is not defined"));
 		}
 		if (nTypeException == EXCEPTION_STATEMENT_STRUCT_ERROR)
 		{
 			// them noi dung vao bien luu exception
 			pVLMsgException->ReplaceWith(new CVar("Exception: Fail in state struct"));
-			pVLMsgException->m_pVar->AddChild("name", new CVar("Exception"));
-			pVLMsgException->m_pVar->AddChild("message", new CVar("Fail in state struct"));
+			pVLMsgException->m_pVar->AddChild("name", DEFAULT_ALIAS_NAME, new CVar("Exception"));
+			pVLMsgException->m_pVar->AddChild("message", DEFAULT_ALIAS_NAME, new CVar("Fail in state struct"));
 		}
 		else if (nTypeException == EXCEPTION_THROW_IN_TRYCATCH)
 		{
@@ -872,9 +853,9 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 				{
 					// them vao stack
 					if (m_lstStack.size() > 0)
-						m_lstStack.back()->AddChildNoDup(pVLFunc->m_sName, pVLFunc->m_pVar);
+						m_lstStack.back()->AddChildNoDup(pVLFunc->m_sName, pVLFunc->m_sAliasName,  pVLFunc->m_pVar);
 					else
-						m_pVRootStack->AddChildNoDup(pVLFunc->m_sName, pVLFunc->m_pVar);
+						m_pVRootStack->AddChildNoDup(pVLFunc->m_sName, pVLFunc->m_sAliasName, pVLFunc->m_pVar);
 				}
 			}
 			catch (CRuntimeException* pRE)
@@ -968,11 +949,6 @@ _EXIT_FUNCTION:
 //------------------------------------------------------------------------------
 void CProgramJs::Execute(const string &sCode, bool bExecute)
 {
-	// Luu doan sCode vao bien cuc bo m_sCodeJS de su dung cho CheckEncodeJS - SonTDc
-	// Có thể sau này không cần đoạn này nữa
-	
-
-	//bool bExecute;	// flag notice Err
 	CTokenPointer *pTokenPointerOld;	// Lưu con trỏ hiện tại
 	vector<CVar*> lstVStackOld;		// lưu danh sách các stack hiện tại
 	CRuntimeException *pREHandleProcess = NULL;
@@ -981,8 +957,6 @@ void CProgramJs::Execute(const string &sCode, bool bExecute)
 	pTokenPointerOld = m_pTokenPointer;
 	lstVStackOld = m_lstStack;
 
-	// khi chay trong function cua onreadystatechange thi khong can create new stack
-	// khi chạy trong hàm của onreadystatechange thì không cần tạo stack mới ???
 	if (m_onreadystatechange != true)
 	{
 		// Tạo stack mới
@@ -1007,6 +981,7 @@ void CProgramJs::Execute(const string &sCode, bool bExecute)
 		// Thực thi code
 		while (m_pTokenPointer->m_nTokenId)
 		{
+			// Bat dau mot cau lenh moi
 			Statement(bExecute);
 		}
 		
@@ -1015,7 +990,7 @@ void CProgramJs::Execute(const string &sCode, bool bExecute)
 	{
 		pREHandleProcess = pRE;
 	}
-
+	m_sCodeJS = XuLyChuoiTinh(m_sCodeJS);
 	// restore searchPointer && m_listStack to continute running
 	m_pTokenPointer = pTokenPointerOld;
 	m_lstStack = lstVStackOld;
@@ -1063,7 +1038,7 @@ CVarLink* CProgramJs::EvaluateComplex(const string &sCode)
 
 			// fix err tiny-JS khong them bien FUNCTION trong ham base
 			if (pVLTmp && pVLTmp->m_pVar && pVLTmp->m_pVar->m_nTypeVar == SCRIPTVAR_FUNCTION)
-				m_pVRootStack->AddChildNoDup(pVLTmp->m_sName, pVLTmp->m_pVar);
+				m_pVRootStack->AddChildNoDup(pVLTmp->m_sName, pVLTmp->m_sAliasName, pVLTmp->m_pVar);
 
 		} while (m_pTokenPointer && m_pTokenPointer->m_nTokenId != TK_EOF);
 	}
@@ -1118,7 +1093,13 @@ void CProgramJs::ParseFunctionArguments(CVar *pVLstArgument, bool bIsReDefine)
 	{
 		pVLArg = NULL;
 		if (pVLstArgument)
-			pVLArg = pVLstArgument->AddChildNoDup(m_pTokenPointer->m_sTokenStr, NULL, TRUE);
+		{
+			pVLArg = pVLstArgument->AddChildNoDup(m_pTokenPointer->m_sTokenStr,
+				"param" + to_string(m_countParamName),
+				NULL,
+				TRUE);
+			m_countParamName += 1;
+		}
 		if (pVLArg)
 			if (!bIsReDefine)
 				pVLArg->SetNotReDefine();	// Cai dat cac ham API mac dinh
@@ -1149,7 +1130,7 @@ void CProgramJs::GetListChildArray(CVar *pVList)
 		_snprintf_s(idx_str, sizeof(idx_str),_TRUNCATE, "%d", nIndex);
 		pVLChild = Base(bExecute);
 		if (pVLChild)
-			pVList->AddChild(idx_str, pVLChild->m_pVar);
+			pVList->AddChild(idx_str, pVLChild->m_sAliasName, pVLChild->m_pVar);
 
 		// no need to clean here, as it will definitely be used
 		if (m_pTokenPointer->m_nTokenId != ')')
@@ -1191,7 +1172,7 @@ void CProgramJs::AddFuncNative(const string &sFuncDesc, JSCallback pJSCallBack, 
 		if (!pVLLink) 
 		{
 			// if it doesn't exist, make an object class
-			pVLLink = pVBase->AddChild(sFuncName, new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE);
+			pVLLink = pVBase->AddChild(sFuncName, DEFAULT_ALIAS_NAME, new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT), TRUE);
 			if (pVLLink)
 				pVLLink->SetNotReDefine();
 		}
@@ -1213,7 +1194,7 @@ void CProgramJs::AddFuncNative(const string &sFuncDesc, JSCallback pJSCallBack, 
 	{
 		// Tao doi tuong Funtion Native
 		pVFunc = new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION | SCRIPTVAR_NATIVE);
-		(pVBase->AddChildNoDup(sFuncName, pVFunc, TRUE))->SetNotReDefine();
+		(pVBase->AddChildNoDup(sFuncName, "", pVFunc, TRUE))->SetNotReDefine();
 	}
 
 	pVFunc->SetCallback(pJSCallBack, pUserData);	// Cai dia chi ham gia lap
@@ -1294,13 +1275,13 @@ void CProgramJs::AddAttrNative(const string &sPathAttr, CVar* pVAttr)
 				{
 					// Neu chua co thuoc tinh, mac dinh them thuoc tinh VAR_UNDEFINE
 					pVTmpValue = new CVar();
-					pVLNewAttr = pVBase->AddChild(m_pTokenPointer->m_sTokenStr, pVTmpValue, TRUE);
+					pVLNewAttr = pVBase->AddChild(m_pTokenPointer->m_sTokenStr, DEFAULT_ALIAS_NAME, pVTmpValue, TRUE);
 					if (pVLNewAttr)
 						pVLNewAttr->SetNotReDefine();
 				}
 				else if (!pVLNewAttr && m_pTokenPointer->TryWatchNextToken() == 0){
 					// Them thuoc tinh cuoi cung
-					pVLNewAttr = pVBase->AddChild(m_pTokenPointer->m_sTokenStr, pVAttr, TRUE);
+					pVLNewAttr = pVBase->AddChild(m_pTokenPointer->m_sTokenStr, DEFAULT_ALIAS_NAME, pVAttr, TRUE);
 					if (pVLNewAttr)
 						pVLNewAttr->SetNotReDefine();
 					break;
@@ -1362,6 +1343,7 @@ CVarLink *CProgramJs::ParseFunctionDefinition()
 	int nSize = 0;
 	int nDefineFuncBegin = 0;
 	string sFuncName;
+	string sAliasFuncName;
 	string sDefineFunc; // thuoc tinh luu dinh nghia ham
 	CVarLink *pVLFunc = NULL;
 	CRuntimeException *pREHandleProcess = NULL;
@@ -1374,23 +1356,24 @@ CVarLink *CProgramJs::ParseFunctionDefinition()
 	{
 		// get Function Name
 		// actually parse a function...
-		m_pTokenPointer->Match(TK_R_FUNCTION);			// giá trị trả về trong m_pTokenPointer->m_sTokenStr là tên hàm
-		sFuncName = STR_TEMP_NAME;						//
-														// ban đầu gán giá trị tên hàm mặc định là ""
-		/* we can have functions without names */		//	Nếu sau khi hàm Match bên trên trả về giá trị tên hàm không có 
-		if (m_pTokenPointer->m_nTokenId == TK_ID)		//	Trường hợp function () {} -> không có tên hàm thì mặc định gán bằng ""
-		{												//	Nếu có thì sẽ gán bằng tên trả về m_pTokenPointer->m_sTokenStr
-			sFuncName = m_pTokenPointer->m_sTokenStr;	//
-			m_pTokenPointer->Match(TK_ID);				//
-		}												//
+		m_pTokenPointer->Match(TK_R_FUNCTION);			
+		sFuncName = STR_TEMP_NAME;	
+		sAliasFuncName = "func" + to_string(m_countFunctionName);
+														
+		/* we can have functions without names */		
+		if (m_pTokenPointer->m_nTokenId == TK_ID)		
+		{												
+			sFuncName = m_pTokenPointer->m_sTokenStr;	
+			m_pTokenPointer->Match(TK_ID);	
 
-		// Khơi tạo giá trị VarLink để lưu dữ liệu của hàm với tên đầu vào
-		// thêm giá trị này vào g_VLToRootStack là stack chứa các hàm -> kể cả hàm mặc định lẫn hàm khởi tạo
-		pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName);
+		}												
+
+		pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, sAliasFuncName);
+		m_countFunctionName += 1;
 
 		// get Function Arguments
-		ParseFunctionArguments(pVLFunc->m_pVar); // Lấy thông tin các tham số
-		nFuncBegin = m_pTokenPointer->m_nTokenStart; // Khởi tạo giá trị ban đầu của hàm
+		ParseFunctionArguments(pVLFunc->m_pVar);	
+		nFuncBegin = m_pTokenPointer->m_nTokenStart;
 		bNoexecute = false;
 
 		// get szCode of Function
@@ -1425,7 +1408,6 @@ CVarLink *CProgramJs::ParseFunctionDefinition()
 	return pVLFunc;
 
 }
-
 
 CVarLink *CProgramJs::RunFunction(CVarLink *pVLFunc,
 	CVar *pVParent, CVar* pVArgumentsValue, bool bExecuteInEval)
@@ -1476,7 +1458,7 @@ CVarLink *CProgramJs::RunFunction(CVarLink *pVLFunc,
 		// Khoi tao New Stack cho ham - luu cac bien cuc bo su dung trong ham
 		pVStackLocalFunction = new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION);
 		if (pVParent)
-			pVStackLocalFunction->AddChildNoDup("this", pVParent);
+			pVStackLocalFunction->AddChildNoDup("this", DEFAULT_ALIAS_NAME, pVParent);
 
 		// Cai dat gia tri cua cac tham so dau vao 
 		// Cac bien cuc bo trong ham su dung duoc huy bo bang huy(pVLocalStack)
@@ -1495,11 +1477,11 @@ CVarLink *CProgramJs::RunFunction(CVarLink *pVLFunc,
 			if (pVLArgValue->m_pVar && pVLArgValue->m_pVar->IsBasic())
 				// pass by value
 				// Neu tham so ko co ds con -> cop gia tri du lieu cho t.so
-				pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLArgValue->m_pVar->DeepCopy());
+				pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLFirstArgument->m_sAliasName, pVLArgValue->m_pVar->DeepCopy());
 			else
 				// pass by reference
 				// Neu t.so co ds con -> truyen du lieu cua t.so 
-				pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLArgValue->m_pVar);
+				pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLFirstArgument->m_sAliasName, pVLArgValue->m_pVar);
 
 			// Ket thuc gan gia tri cho loi goi ham
 			pVLFirstArgument = pVLFirstArgument->m_pNextSibling;
@@ -1511,7 +1493,7 @@ CVarLink *CProgramJs::RunFunction(CVarLink *pVLFunc,
 		if (!pVLFunc->m_pVar->IsNative() && pVLFunc->m_pVar->m_pBuffDefineFunc != 0)
 		{
 			pVLArgValue = pVStackLocalFunction->AddChild(STR_ARGUMENTS_VAR);
-			pVLArgValue->m_pVar->AddChild("callee", new CVar(pVLFunc->m_pVar->GetStringDefineFunc()));
+			pVLArgValue->m_pVar->AddChild("callee", DEFAULT_ALIAS_NAME, new CVar(pVLFunc->m_pVar->GetStringDefineFunc()));
 		}
 		pVLFuncReturn = pVStackLocalFunction->AddChild(STR_RETURN_VAR);
 
@@ -1589,10 +1571,10 @@ CVarLink *CProgramJs::RunFunction(CVarLink *pVLFunc,
 }
 
 //------------------------------------------------------------------------------
-// M?c dích:	Thêm 1 d?i tu?ng Function du?c cài d?t CallBack theo th?i gian vào 
+// M?c dích:	Thêm 1 doi tuong Function duoc cai dat CallBack theo thoi gian vao
 //				danh sách.
 // ----------------
-// Vào:			Con tr? d? li?u d?i tu?ng function.
+// Vào:			Con tro du lieu doi tuong function.
 //------------------------------------------------------------------------------
 void CProgramJs::AddFuncCallBackBySetInterval(CVar* pVarFunction)
 {
@@ -1690,7 +1672,7 @@ CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVPa
 				// Khoi tao New Stack cho ham - luu cac bien cuc bo su dung trong ham
 				pVStackLocalFunction = new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION);
 				if (pVParent)
-					pVStackLocalFunction->AddChildNoDup("this", pVParent); // Thêm vào stack phần tử this sao cho nó  khônglặp lại với phần tử this có sẵn trong đó
+					pVStackLocalFunction->AddChildNoDup("this", DEFAULT_ALIAS_NAME, pVParent); // Thêm vào stack phần tử this sao cho nó  khônglặp lại với phần tử this có sẵn trong đó
 
 				// Cai dat gia tri cua cac tham so dau vao 
 				// Cac bien cuc bo trong ham su dung duoc huy bo bang huy(pVLocalStack)
@@ -1722,14 +1704,14 @@ CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVPa
 								// Neu tham so ko co ds con -> cop gia tri du lieu cho t.so
 							{
 								if (pVStackLocalFunction)
-									pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLArgValue->m_pVar->DeepCopy());
+									pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLFirstArgument->m_sAliasName, pVLArgValue->m_pVar->DeepCopy());
 							}
 							else
 								// pass by reference
 								// Neu t.so co ds con -> truyen du lieu cua t.so 
 							{
 								if (pVStackLocalFunction)
-									pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLArgValue->m_pVar);
+									pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName, pVLFirstArgument->m_sAliasName, pVLArgValue->m_pVar);
 							}
 						}
 
@@ -1764,7 +1746,7 @@ CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVPa
 				if (pVLFunc && pVLFunc->m_pVar && !pVLFunc->m_pVar->IsNative() && pVLFunc->m_pVar->m_pBuffDefineFunc != 0)
 				{
 					pVLArgValue = pVStackLocalFunction->AddChild(STR_ARGUMENTS_VAR);
-					pVLArgValue->m_pVar->AddChild("callee", new CVar(pVLFunc->m_pVar->GetStringDefineFunc()));
+					pVLArgValue->m_pVar->AddChild("callee", DEFAULT_ALIAS_NAME, new CVar(pVLFunc->m_pVar->GetStringDefineFunc()));
 				}
 				// add the function's execute space to the symbol table so we can recurse
 				pVLFuncReturn = pVStackLocalFunction->AddChild(STR_RETURN_VAR);
@@ -1961,28 +1943,32 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 						if (pVLChildInPrototype && pVLChildInPrototype->m_pVar)
 						{
 							if (!pVLChildInPrototype->m_pVar->IsFunction())
+							{
 
 								// them thuoc tinh rieng cho doi tuong nay 
 								// neu thuoc tinh co trong prototy
 								// va thuoc tinh khong phai la dia chi ham
-							if (pVLObjectCall && pVLObjectCall->m_pVar && pVLChildInPrototype->m_pVar->m_nTypeVar == SCRIPTVAR_DOUBLE)
-							{
-								pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild,
-									new CVar(pVLChildInPrototype->m_pVar->m_fData));
-							}
-							else if (pVLObjectCall && pVLObjectCall->m_pVar && pVLChildInPrototype->m_pVar->m_nTypeVar == SCRIPTVAR_INTEGER)
-							{
-								pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild,
-									new CVar(pVLChildInPrototype->m_pVar->m_lData));
-							}
-							else
-							{
-								if (pVLObjectCall && pVLObjectCall->m_pVar)
+								if (pVLObjectCall && pVLObjectCall->m_pVar && pVLChildInPrototype->m_pVar->m_nTypeVar == SCRIPTVAR_DOUBLE)
+								{
 									pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild,
+										DEFAULT_ALIAS_NAME,
+										new CVar(pVLChildInPrototype->m_pVar->m_fData));
+								}
+								else if (pVLObjectCall && pVLObjectCall->m_pVar && pVLChildInPrototype->m_pVar->m_nTypeVar == SCRIPTVAR_INTEGER)
+								{
+									pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild, 
+										DEFAULT_ALIAS_NAME,
+										new CVar(pVLChildInPrototype->m_pVar->m_lData));
+								}
+								else
+								{
+									if (pVLObjectCall && pVLObjectCall->m_pVar)
+										pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild, 
+										DEFAULT_ALIAS_NAME,
 										new CVar(pVLChildInPrototype->m_pVar->m_sData,
 										pVLChildInPrototype->m_pVar->m_nTypeVar));
+								}
 							}
-
 							else
 								// neu la dia chi ham 
 								pVLChild = pVLChildInPrototype;
@@ -2001,8 +1987,6 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 								if (g_sstrDetectDownloader)
 									g_sstrDetectDownloader->bFor7k = true;
 							}
-
-
 						}
 						else if (pVLObjectCall && pVLObjectCall->m_pVar && pVLObjectCall->m_pVar->IsString() && sNameChild == "length") 
 						{
@@ -2292,7 +2276,7 @@ CVarLink *CProgramJs::Factor(bool &bExecute, bool bExecuteInEval)
 				if (bExecute) 
 				{
 					pVLTmpValue = Base(bExecute, bExecuteInEval);
-					pVParent->AddChild(sTokenPointerId, pVLTmpValue->m_pVar);
+					pVParent->AddChild(sTokenPointerId, pVLTmpValue->m_sAliasName, pVLTmpValue->m_pVar);
 				}
 				// no need to clean here, as it will definitely be used
 				if (m_pTokenPointer->m_nTokenId != '}')
@@ -2323,7 +2307,7 @@ CVarLink *CProgramJs::Factor(bool &bExecute, bool bExecuteInEval)
 					pVLTmpValue = Base(bExecute, bExecuteInEval);
 					if (pVLTmpValue)
 					{
-						CVarLink* pVar = pVParent->AddChild("", pVLTmpValue->m_pVar);
+						CVarLink* pVar = pVParent->AddChild("", DEFAULT_ALIAS_NAME, pVLTmpValue->m_pVar);
 						if (pVar)
 							pVar->SetIntName(nIndexInArray);
 					}
@@ -2407,7 +2391,7 @@ CVarLink *CProgramJs::Factor(bool &bExecute, bool bExecuteInEval)
 					{
 						// la doi tuong chi co con structor mac dinh
 						if (pVLNewObj->m_pVar)
-							pVLNewObj->m_pVar->AddChild(STR_PROTOTYPE_CLASS, pVLObjClassOrFunc->m_pVar);
+							pVLNewObj->m_pVar->AddChild(STR_PROTOTYPE_CLASS, DEFAULT_ALIAS_NAME, pVLObjClassOrFunc->m_pVar);
 						if (m_pTokenPointer->m_nTokenId == '(')
 						{
 							m_pTokenPointer->Match('(');
@@ -3019,7 +3003,7 @@ CVarLink *CProgramJs::Base(bool &bExecute, bool bExecuteInEval)
 			{
 				if (pVLLeftOperand->m_sName.length() > 0)
 				{
-					pVLRealLhs = m_pVRootStack->AddChildNoDup(pVLLeftOperand->m_sName, pVLLeftOperand->m_pVar);
+					pVLRealLhs = m_pVRootStack->AddChildNoDup(pVLLeftOperand->m_sName, pVLLeftOperand->m_sAliasName, pVLLeftOperand->m_pVar);
 					pVLLeftOperand = pVLRealLhs;
 				}
 				else
@@ -3048,22 +3032,11 @@ CVarLink *CProgramJs::Base(bool &bExecute, bool bExecuteInEval)
 							{
 								if (pVLLeftOperand==m_pVLDStringOnreadyStateChange) // ...[NDC]
                                     m_onreadystatechange = true;
-								// Lại check giá trị của vế phải xem có giống với đoạn code mẫu hay không
-								//this->CheckVirusStatic(pVLRightOperand->m_pVar->m_sData);
-								// Gọi lại hàm Execute để đệ qui
 								this->Execute(pVLRightOperand->m_pVar->m_sData);
 								m_onreadystatechange = false;
 							}
 						}
 					}
-					//bat virus voi dieu kien vong for >7k va co thay doi gia tri trong for..... [NDC]
-					else if (pVLRightOperand->m_pVar->IsString() && g_sstrDetectDownloader && g_sstrDetectDownloader->bFor7k)
-					{
-						/*pREHadVirus = new CRuntimeException(VR_NAME_DOWNLOADER, EXCEPTIONID_FOUND_VIRUS, false);
-						pREHadVirus->SetVirusName(VR_NAME_DOWNLOADER);
-						throw pREHadVirus;*/
-					}
-
 					// Neu bien document.onmosemove = dia chi ham -> thuc hien ham
 					else if (pVLLeftOperand == m_pVLDcmtOnmousemove)
 					{
@@ -3073,23 +3046,14 @@ CVarLink *CProgramJs::Base(bool &bExecute, bool bExecuteInEval)
 							// thuc hien ham tu dinh nghia luu trong toan hang ben phai
 							if (!pVLRightOperand->m_pVar->IsNative())
 							{
-
 								pVArgsValue = new CVar();
 								pVRes = new CVar(STR_BLANK_DATA, SCRIPTVAR_OBJECT);
-								pVRes->AddChild("pageX", new CVar(POS_X_MOUSE));
-								pVRes->AddChild("pageY", new CVar(POS_Y_MOUSE));
-								pVArgsValue->AddChild("e", pVRes);
+								pVRes->AddChild("pageX", DEFAULT_ALIAS_NAME, new CVar(POS_X_MOUSE));
+								pVRes->AddChild("pageY", DEFAULT_ALIAS_NAME, new CVar(POS_Y_MOUSE));
+								pVArgsValue->AddChild("e", DEFAULT_ALIAS_NAME, pVRes);
 
 								pVLTmp = RunFunction(pVLRightOperand, NULL, pVArgsValue);
 								pVRes = NULL;
-
-								// thuc hien k.tra vi tri cac t`.phan document
-								/*if (CheckVirusFollowMouse())
-								{
-									pREHadVirus = new CRuntimeException(VR_NAME_FACE_LIKER, EXCEPTIONID_FOUND_VIRUS, false);
-									pREHadVirus->SetVirusName(VR_NAME_FACE_LIKER);
-									throw pREHadVirus;
-								}*/
 
 							}
 						}
@@ -3101,13 +3065,7 @@ CVarLink *CProgramJs::Base(bool &bExecute, bool bExecuteInEval)
 						// Neu window.location.href = link -> virus
 						if (pVLRightOperand->m_pVar->IsString())
 						{
-							/*sLinkCheckRedirect = pVLRightOperand->m_pVar->GetString();
-							if (CheckVirusRedirect(pVLLeftOperand, sLinkCheckRedirect))
-							{
-								pREHadVirus = new CRuntimeException(VR_NAME_REDIRECT, EXCEPTIONID_FOUND_VIRUS, false);
-								pREHadVirus->SetVirusName(VR_NAME_REDIRECT);
-								throw pREHadVirus;
-							}*/
+							// Kiem tra neu ve phai la string
 						}
 						//document.cookie duoc dinh nghia mot gia tri khac
 						if (pVLLeftOperand->m_sName == "cookie")
@@ -3121,14 +3079,6 @@ CVarLink *CProgramJs::Base(bool &bExecute, bool bExecuteInEval)
 				else if (nOp == TK_PLUSEQUAL)
 				{
 					pVRes = pVLLeftOperand->m_pVar->MathsOp(pVLRightOperand->m_pVar, '+');
-					//bat virus voi dieu kien vong for >7k va co thay doi gia tri trong for
-					/*if (pVLRightOperand->m_pVar->IsString() && g_sstrDetectDownloader && g_sstrDetectDownloader->bFor7k)
-					{
-						pREHadVirus = new CRuntimeException(VR_NAME_DOWNLOADER, EXCEPTIONID_FOUND_VIRUS, false);
-						pREHadVirus->SetVirusName(VR_NAME_DOWNLOADER);
-						throw pREHadVirus;
-					}*/
-
 					pVLLeftOperand->ReplaceWith(pVRes);
 
 				}
@@ -3261,6 +3211,7 @@ bool CProgramJs::BlockCode(bool &bExecute, bool bExecuteInEval)
 // -----------------------------------------------------------------------------
 bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 {
+	
 	CRuntimeException *pExceptionVr = NULL;
 
 	CTokenPointer* pTokenParent = m_pTokenPointer;
@@ -3370,7 +3321,15 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			{
 				// Tim var trong stack >> pVLTmpValue
 				if (bExecute && m_lstStack.size() > 0)
-					pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr);
+					pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, "var"+ to_string(m_countVarName));
+				// Check xem co duplicate bien hay khong
+				if (pVLTmpValue)
+				{
+					if (pVLTmpValue->m_sAliasName != "var" + to_string(m_countVarName))
+						m_countVarName -= 1;
+				}
+				
+
 				m_pTokenPointer->Match(TK_ID);
 				// now do stuff defined with dots
 				while (m_pTokenPointer->m_nTokenId == '.')
@@ -3472,6 +3431,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			m_pTokenPointer->Match('(');
 			nDoWhileCondStart = m_pTokenPointer->m_nTokenStart;
 
+			// Get condition in while to loop
 			// check first Condition + create Token DoWhileCond ..................
 			pVLCond = Base(bExecute, bExecuteInEval);
 			if (pVLCond && pVLCond->m_pVar)
@@ -3484,11 +3444,12 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			nTimeLoop = 0;
 			try
 			{
-				nGetTickCountStart = GetTickCount();
+				int countExecuteStatement = 0;
 				while (pTokenCond && bLoopCond && bResultRunStatement && nLoopCount-- > 0 && nTimeLoop < JS_LOOP_MAX_TIME)
 				{
 					if (bLoopCond)
 					{
+						countExecuteStatement += 1;
 						pTokenBody->Reset();
 						m_pTokenPointer = pTokenBody;
 						SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
@@ -3499,12 +3460,10 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 					pVLCond = Base(bExecute, bExecuteInEval);
 					if (pVLCond && pVLCond->m_pVar)
 						bLoopCond = bExecute && pVLCond->m_pVar->GetBool();
-
-
-					nGetTickCountEnd = GetTickCount();
-					
-					nTimeLoop = nGetTickCountEnd - nGetTickCountStart;
 				}
+				// luu ra thong tin so lan lap cua do ... while
+				m_sCodeJS += " : " + to_string(countExecuteStatement);
+				countExecuteStatement = 0;
 
 				m_pTokenPointer = pTokenParent;
 
@@ -3573,7 +3532,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			nTimeLoop = 0;
 			try
 			{
-				nGetTickCountStart = GetTickCount();
+				int countExecuteStatement = 0;
 				while (bLoopCond && bResultRunStatement && (nLoopCount-- > 0) &&(nTimeLoop < JS_LOOP_MAX_TIME))
 				{
 					pTokenCond->Reset();
@@ -3585,13 +3544,15 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 
 					if (bLoopCond)
 					{
+						countExecuteStatement += 1;
 						pTokenBody->Reset();
 						m_pTokenPointer = pTokenBody;
 						SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
 					}
-					nGetTickCountEnd = GetTickCount();
-					nTimeLoop = nGetTickCountEnd - nGetTickCountStart;
 				}
+				// Luu thong tin so lan lap
+				m_sCodeJS += " : " + to_string(countExecuteStatement);
+
 				m_pTokenPointer = pTokenParent;
 				//bien luu co su dung vong lap de giai ma ra mau redirector
 				if (g_sstrDetectVirusOther)
@@ -3621,9 +3582,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 					throw pRE;
 				}
 			}
-
 		}
-
 
 		//----------------------------------------------------------------------
 		// Process Block: 
@@ -3684,83 +3643,73 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 
 					m_pTokenPointer->Match(TK_ID);
 					m_pTokenPointer->Match(')');
-// 
-// 					if (nLenghtArrayForIn > 0)
-// 					{
 
 					//khoi tao gia tri ban dau bang khong cho bien duyet
-						pVTmpValue = new CVar("0",SCRIPTVAR_INTEGER);
+					pVTmpValue = new CVar("0",SCRIPTVAR_INTEGER);
+					pVTmpValueForIn = new CVarLink(pVTmpValue);
+					pVLValueForIn->ReplaceWith(pVTmpValueForIn);
+					//neu co ton tai mang
+					if (nLenghtArrayForIn > 0)
+					{
+						bLoopCond = true;
+					}
+					bNoexecute = false;
+					//chay vong for lan dau tien
+					nForBodyStart = m_pTokenPointer->m_nTokenStart;
+					SAVE_BOOL_RETURN(bResultRunStatement, Statement(bLoopCond ? bExecute : bNoexecute, bExecuteInEval));
+					//nau xay ra loi trong cong lap
+					if (!bResultRunStatement)
+					{
+						OutputDebug("Chay sai lenh trong than vong lap !!");
+						bLoopCond = false;
+			 				
+					}
+					//luu lai token bat dau khoi lenh
+					pTokenBody = m_pTokenPointer->GetSubToken(nForBodyStart);
+					 
+					nLoopCount = JS_LOOP_MAX_ITERATIONS;
+					nArrayForInStart = 0;
+					//thuc hien lap voi so vong lap biet truoc
+					int countExecuteStatement = 0;
+					while (bLoopCond && bResultRunStatement && (nLoopCount-- > 0) )
+					{
+						nArrayForInStart++;								
+						if (nArrayForInStart < nLenghtArrayForIn)
+			 					bLoopCond = true;							
+						else 
+								bLoopCond = false;
+						//chuyen tu kieu int sang char 	
+						_itoa_s(nArrayForInStart, buffer, 10);
+								
+						pVTmpValue = new CVar(buffer, SCRIPTVAR_INTEGER);
 						pVTmpValueForIn = new CVarLink(pVTmpValue);
 						pVLValueForIn->ReplaceWith(pVTmpValueForIn);
-						//neu co ton tai mang
-						if (nLenghtArrayForIn > 0)
+						//xet dieu kien de thuc hien khoi lenh
+						if (bLoopCond)		
 						{
-							bLoopCond = true;
+							countExecuteStatement += 1;
+							pTokenBody->Reset();
+							m_pTokenPointer = pTokenBody;
+							SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
 						}
-						bNoexecute = false;
-						//chay vong for lan dau tien
-						nForBodyStart = m_pTokenPointer->m_nTokenStart;
-						SAVE_BOOL_RETURN(bResultRunStatement, Statement(bLoopCond ? bExecute : bNoexecute, bExecuteInEval));
-						//nau xay ra loi trong cong lap
-						if (!bResultRunStatement)
-						{
-							OutputDebug("Chay sai lenh trong than vong lap !!");
-						 	bLoopCond = false;
-			 				
-						}
-						//luu lai token bat dau khoi lenh
-						pTokenBody = m_pTokenPointer->GetSubToken(nForBodyStart);
-					 
-						nLoopCount = JS_LOOP_MAX_ITERATIONS;
-						nArrayForInStart = 0;
-						//thuc hien lap voi so vong lap biet truoc
-						while (bLoopCond && bResultRunStatement && (nLoopCount-- > 0) )
-						{
-							nArrayForInStart++;								
-							if (nArrayForInStart < nLenghtArrayForIn)
-			 						bLoopCond = true;							
-							else 
-									bLoopCond = false;
-							//chuyen tu kieu int sang char 	
-							_itoa_s(nArrayForInStart, buffer, 10);
-								
-							pVTmpValue = new CVar(buffer, SCRIPTVAR_INTEGER);
-							pVTmpValueForIn = new CVarLink(pVTmpValue);
-							pVLValueForIn->ReplaceWith(pVTmpValueForIn);
-							//xet dieu kien de thuc hien khoi lenh
-							if (bLoopCond)		
-							{
-									pTokenBody->Reset();
-									m_pTokenPointer = pTokenBody;
-									SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
-							    
-							}
+					}
 
-						}
-						m_pTokenPointer = pTokenParent;
-						//neu qua so lan lap 
-						if (nLoopCount <= 0)
-						{
-							//m_pVRootStack->Trace();
-							OutputDebug(string("FOR Loop exceeded ") + JS_LOOP_MAX_ITERATIONS_STR +
-								" iterations at " + m_pTokenPointer->GetPosition().c_str());
-							throw new CRuntimeException("LOOP_ERROR");
-						}
+					// Luu lai thong tin so lan call Statement
+					m_sCodeJS += " : " + countExecuteStatement;
 
-// 					}
-// 					else
-// 						throw new CRuntimeException(" Ham For(x in y) loi!!");
+					m_pTokenPointer = pTokenParent;
+					//neu qua so lan lap 
+					if (nLoopCount <= 0)
+					{
+						//m_pVRootStack->Trace();
+						OutputDebug(string("FOR Loop exceeded ") + JS_LOOP_MAX_ITERATIONS_STR +
+							" iterations at " + m_pTokenPointer->GetPosition().c_str());
+						throw new CRuntimeException("LOOP_ERROR");
+					}
 				}
 				else
 					m_pTokenPointer = pTokenParent;
 			}
-			//truong hop vong for(;;x++,y++...)
-// 			if (m_pTokenPointer->m_nTokenId == ';')
-// 			{
-// 				m_pTokenPointer->Match(';');
-// 				
-// 
-// 			}
 			if (!bForIn)
 			{
 				if (m_pTokenPointer->m_nTokenId != ';')
@@ -3972,11 +3921,20 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 		{
 			pVLTmpValue = ParseFunctionDefinition();
 
-			if (bExecute && pVLTmpValue) {
+			if (bExecute && pVLTmpValue) 
+			{
 				if (pVLTmpValue->m_sName == STR_TEMP_NAME)
 					OutputDebug("Functions defined at statement-level are meant to have a name\n");
 				else
-					m_lstStack.back()->AddChildNoDup(pVLTmpValue->m_sName, pVLTmpValue->m_pVar);
+					m_lstStack.back()->AddChildNoDup(pVLTmpValue->m_sName, pVLTmpValue->m_sAliasName, pVLTmpValue->m_pVar);
+
+				// Check neu Dup thi se tru m_count di 1
+				CVarLink* pVLTemp = m_lstStack.back()->FindChild(pVLTmpValue->m_sName);
+				if (pVLTemp)
+				{
+					if (pVLTemp->m_sAliasName != pVLTmpValue->m_sAliasName)
+						m_countFunctionName -= 1;
+				}
 			}
 		}
 
@@ -4027,7 +3985,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 				if (bExecute)
 				{
 					// Ga'n string thong bao loi cho bien nhan exception
-					pVLMsgException = m_lstStack.back()->AddChild(sNameVarCatch, new CVar(sMsgMsgRunInTryCatch));
+					pVLMsgException = m_lstStack.back()->AddChild(sNameVarCatch, DEFAULT_ALIAS_NAME, new CVar(sMsgMsgRunInTryCatch));
 					if (pVLMsgException)
 						pVLMsgException->ReplaceWith(pVLSaveMsgException);
 
@@ -4434,7 +4392,7 @@ bool EmulJS(SCANRESULT* pResult, LPVOID pBuffDataHtml, DWORD dwSizeBuf)
 
 		if (nCountSzCodeJs > 0)
 		{
-			g_pProgramJs->m_pVRootStack->AddChild("result", new CVar(0)); // thêm vào RootStack là stack chứa các thành phần 
+			g_pProgramJs->m_pVRootStack->AddChild("result", DEFAULT_ALIAS_NAME, new CVar(0)); // thêm vào RootStack là stack chứa các thành phần 
 																			// như window -> String -> Array -> Object
 
 			// Lan luot thực thi tung doan code js tu tren xuong duoi
@@ -4533,4 +4491,43 @@ bool EmulJS(SCANRESULT* pResult, LPVOID pBuffDataHtml, DWORD dwSizeBuf)
 
 	DbgPrintLnA("%s", "Exit Scanfile ...");
 	return bResultScan;
+}
+
+
+
+string CProgramJs::XuLyChuoiTinh(string sCodeJS)
+{
+	CRuntimeException* pRuntimeException = NULL;
+
+	int pos = 0;
+	int sub_pos = 0;
+	sCodeJS[sCodeJS.size()] = '\0';
+	try
+	{
+
+		while (pos < sCodeJS.size())
+		{
+			if (sCodeJS.at(pos) == ' ')
+			{
+				sub_pos = pos + 1;
+				if (sub_pos >= sCodeJS.size()) goto _COMPLETE;
+				while (sCodeJS.at(sub_pos) == ' ')
+				{
+					sCodeJS.replace(sub_pos, 1, "");
+					sub_pos += 1;
+					if (sub_pos >= sCodeJS.size()) goto _COMPLETE;
+				}
+				pos = sub_pos;
+			}
+			pos += 1;
+		}
+	}
+	catch (CRuntimeException * pRE)
+	{
+		pRuntimeException = pRE;
+	}
+
+_COMPLETE:
+	SAFE_THROW(pRuntimeException);
+	return sCodeJS;
 }
