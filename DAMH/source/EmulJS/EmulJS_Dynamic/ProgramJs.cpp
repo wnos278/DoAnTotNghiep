@@ -172,6 +172,8 @@ CProgramJs::CProgramJs()
 	m_countParamName = 0;
 	m_countVarName = 0;
 	m_countFuncVarName = 0;
+	m_flagRunInFunc = false;
+	m_flagRunInFor = false;
 
 	// Khoi tao gia tri m_bEncodeJS = false va m_sCodeJS = ""
 	m_sCodeJS = "";
@@ -298,6 +300,7 @@ BOOLEAN CProgramJs::ResetDatabase()
 	m_countParamName = 0;
 	m_countVarName = 0;
 	m_countFuncVarName = 0;
+	m_flagRunInFunc = false;
 
 	BOOLEAN bResult = FALSE;
 	INT i = 0, nSize = 0;
@@ -1095,10 +1098,9 @@ void CProgramJs::ParseFunctionArguments(CVar *pVLstArgument, bool bIsReDefine)
 		if (pVLstArgument)
 		{
 			pVLArg = pVLstArgument->AddChildNoDup(m_pTokenPointer->m_sTokenStr,
-				"param" + to_string(m_countParamName),
+				DEFAULT_ALIAS_NAME,
 				NULL,
 				TRUE);
-			m_countParamName += 1;
 		}
 		if (pVLArg)
 			if (!bIsReDefine)
@@ -1694,8 +1696,10 @@ CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVPa
 					m_pTokenPointer->Match('(');
 					while (pVLFirstArgument)
 					{
+						// Kiem tra ngoai le khi khai bao
+						if (m_pTokenPointer->m_nTokenId == ')')
+							break;
 						// tinh gia tri tham so dau vao
-						// trả về tên tham số trong pVLArgValue->m_sName, giá trị trong m_pVar
 						pVLArgValue = Base(bExecute, bExecuteInEval);
 						if (bExecute) 
 						{
@@ -1761,7 +1765,6 @@ CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVPa
 				}
 				else 
 				{
-					// func la cac ham file JS tu dinh nghia
 					/* we just want to execute the block, but something could
 					* have messed up and left us with the wrong ScriptLex, so
 					* we want to be careful here... */
@@ -1911,10 +1914,14 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 			if (m_pTokenPointer->m_nTokenId == '(')
 			{
 				// luu ten ham goi
-				if (pVLObjectCall->m_sAliasName != "")
-					m_sCodeJS += " " + pVLObjectCall->m_sAliasName +"  ";
-				else 
-					m_sCodeJS += " " + pVLObjectCall->m_sName + " ";
+				if (m_flagRunInFor == false)
+				{
+					if (pVLObjectCall->m_sAliasName != "")
+						m_sCodeJS += " " + pVLObjectCall->m_sAliasName + "  ";
+					else
+						m_sCodeJS += " " + pVLObjectCall->m_sName + " ";
+				}
+				
 				pVLObjectCall = FunctionCall(bExecute, pVLObjectCall, pVParent, bExecuteInEval);
 				pVLObjectBeginCall = pVLObjectCall;
 
@@ -1929,11 +1936,16 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 				m_pTokenPointer->Match('.');
 				if (bExecute)
 				{
-					m_sCodeJS += " . "; // Luu ID.SubId neu dang o trang thai Execute 
+					if (m_flagRunInFor == false)
+						m_sCodeJS += " . "; // Luu ID.SubId neu dang o trang thai Execute 
 					sNameChild = m_pTokenPointer->m_sTokenStr;
-					m_sCodeJS += " " + sNameChild + " "; // Luu ten thuoc tinh || phuong thuc cua bien ID
+					
 					if (pVLObjectCall && pVLObjectCall->m_pVar)
+					{
 						pVLChild = pVLObjectCall->m_pVar->FindChild(sNameChild);
+						if (m_flagRunInFor == false)
+							m_sCodeJS += " " + sNameChild + " "; // Luu ten thuoc tinh || phuong thuc cua bien ID
+					}
 					if (!pVLChild)
 					{
 						// tim trong prototype cua doi tuong
@@ -1942,9 +1954,11 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 
 						if (pVLChildInPrototype && pVLChildInPrototype->m_pVar)
 						{
+
 							if (!pVLChildInPrototype->m_pVar->IsFunction())
 							{
-
+								if (m_flagRunInFor == false)
+									m_sCodeJS += " " + sNameChild + " "; // Luu ten thuoc tinh || phuong thuc cua bien ID
 								// them thuoc tinh rieng cho doi tuong nay 
 								// neu thuoc tinh co trong prototy
 								// va thuoc tinh khong phai la dia chi ham
@@ -1953,25 +1967,41 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 									pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild,
 										DEFAULT_ALIAS_NAME,
 										new CVar(pVLChildInPrototype->m_pVar->m_fData));
+									if (m_flagRunInFor == false)
+										m_sCodeJS += " UnDefine "; // Luu ten thuoc tinh || phuong thuc cua bien ID
 								}
 								else if (pVLObjectCall && pVLObjectCall->m_pVar && pVLChildInPrototype->m_pVar->m_nTypeVar == SCRIPTVAR_INTEGER)
 								{
 									pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild, 
 										DEFAULT_ALIAS_NAME,
 										new CVar(pVLChildInPrototype->m_pVar->m_lData));
+									if (m_flagRunInFor == false)
+										m_sCodeJS += " UnDefine "; // Luu ten thuoc tinh || phuong thuc cua bien ID
 								}
 								else
 								{
 									if (pVLObjectCall && pVLObjectCall->m_pVar)
-										pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild, 
+										pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild,
 										DEFAULT_ALIAS_NAME,
 										new CVar(pVLChildInPrototype->m_pVar->m_sData,
 										pVLChildInPrototype->m_pVar->m_nTypeVar));
+									
 								}
 							}
 							else
 								// neu la dia chi ham 
+							{
 								pVLChild = pVLChildInPrototype;
+								if (m_flagRunInFor == false)
+								{
+									if (pVLChild->m_sAliasName == "")
+										m_sCodeJS += " " + pVLChild->m_sName + " "; // Luu ten thuoc tinh || phuong thuc cua bien ID
+									else 
+										m_sCodeJS += " " + pVLChild->m_sAliasName + " ";
+								}
+									
+							}
+								
 						}
 					}
 					if (!pVLChild)
@@ -2019,7 +2049,8 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 				pVLIndexOfArray = Base(bExecute, bExecuteInEval);
 				if (bExecute && (!pVLIndexOfArray || !pVLIndexOfArray->m_pVar || pVLIndexOfArray->m_pVar->IsUndefined()))
 					throw new CRuntimeException("Loi:: Mang[ViTri] khong duoc dinh nghia");
-				m_sCodeJS += " Array ";
+				if (m_flagRunInFor == false)
+					m_sCodeJS += " Array ";
 				m_pTokenPointer->Match(']');
 				if (bExecute && pVLObjectCall && pVLObjectCall->m_pVar)
 				{
@@ -3179,13 +3210,15 @@ bool CProgramJs::BlockCode(bool &bExecute, bool bExecuteInEval)
 	m_pTokenPointer->Match('{');
 	if (bExecute)
 	{
+		m_flagRunInFunc = true;
 		// Thuc hien khoi lenh trong ngoac { ... }
 		// Ket qua chay khoi lenh = false neu co 1 lenh chay sai
 		while (m_pTokenPointer->m_nTokenId && m_pTokenPointer->m_nTokenId != '}')
 			SAVE_BOOL_RETURN(bResultExeBlock, Statement(bExecute, bExecuteInEval));
 		// End block code
-		
-		m_pTokenPointer->Match('}'); // Hàm này tìm kiếm token tiếp theo sau khi thực thi hết code trong khối lệnh (của một hàm tự định nghĩa)
+		m_flagRunInFunc = false;
+		m_pTokenPointer->Match('}'); 
+
 	}
 	else
 	{
@@ -3321,14 +3354,26 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			{
 				// Tim var trong stack >> pVLTmpValue
 				if (bExecute && m_lstStack.size() > 0)
-					pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, "var"+ to_string(m_countVarName));
-				// Check xem co duplicate bien hay khong
-				if (pVLTmpValue)
 				{
-					if (pVLTmpValue->m_sAliasName != "var" + to_string(m_countVarName))
-						m_countVarName -= 1;
+					if (m_flagRunInFunc == false)
+					{
+						pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, "globalVar" + to_string(m_countVarName));
+						// Check xem co duplicate bien hay khong
+						if (pVLTmpValue && pVLTmpValue->m_sAliasName != "globalVar" + to_string(m_countVarName))
+						{
+							m_countVarName -= 1;
+						}
+					}
+					else
+					{
+						pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, "funcVar" + to_string(m_countFuncVarName));
+						// Check xem co duplicate bien hay khong
+						if (pVLTmpValue && pVLTmpValue->m_sAliasName != "funcVar" + to_string(m_countFuncVarName))
+						{
+							m_countFuncVarName -= 1;
+						}
+					}
 				}
-				
 
 				m_pTokenPointer->Match(TK_ID);
 				// now do stuff defined with dots
@@ -3595,6 +3640,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			// initialisation
 			m_pTokenPointer->Match(TK_R_FOR);
 			m_pTokenPointer->Match('(');
+
 			if (m_pTokenPointer->m_nTokenId==TK_ID) // [NDC]
 			{
 				//luu lai token goc
@@ -3671,6 +3717,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 					nArrayForInStart = 0;
 					//thuc hien lap voi so vong lap biet truoc
 					int countExecuteStatement = 0;
+					
 					while (bLoopCond && bResultRunStatement && (nLoopCount-- > 0) )
 					{
 						nArrayForInStart++;								
@@ -3692,11 +3739,13 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 							m_pTokenPointer = pTokenBody;
 							SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
 						}
+						// Luu gia tri lan 1
+						m_flagRunInFor = true;
 					}
 
 					// Luu lai thong tin so lan call Statement
-					m_sCodeJS += " : " + countExecuteStatement;
-
+					m_sCodeJS += " } : " + to_string(countExecuteStatement);
+					countExecuteStatement = 0;
 					m_pTokenPointer = pTokenParent;
 					//neu qua so lan lap 
 					if (nLoopCount <= 0)
@@ -3813,20 +3862,23 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 				{
 					pTokenIter->Reset();
 					m_pTokenPointer = pTokenIter;
-
+					
 					// fix:: trong lap For con chay Iterator thay doi 
 					while (m_pTokenPointer->m_nTokenId != TK_EOF && m_pTokenPointer->m_nTokenId != ')')
 					{
+						
 						pVLTmpValue = Base(bExecute, bExecuteInEval);
 						if (m_pTokenPointer->m_nTokenId == ',')
 							m_pTokenPointer->Match(',');
 					}
+					
 				}
 
 				// run Loop BodyCode................................................
 				try
 				{
-
+					int countExecuteStatement = 0;
+					m_sCodeJS += " { ";
 					nLoopCount = JS_LOOP_MAX_ITERATIONS;
 					nTimeLoop = 0;
 					nGetTickCountStart = GetTickCount();
@@ -3851,18 +3903,26 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 						{
 							pTokenIter->Reset();
 							m_pTokenPointer = pTokenIter;
-
+							
 							// fix:: trong lap For con chay Iterator thay doi 
 							while (m_pTokenPointer->m_nTokenId != TK_EOF && m_pTokenPointer->m_nTokenId != ')')
 							{
+								countExecuteStatement += 1;
 								pVLTmpValue = Base(bExecute, bExecuteInEval);
 								if (m_pTokenPointer->m_nTokenId == ',')
 									m_pTokenPointer->Match(',');
 							}
 						}
+						// Luu gia tri lan 1
+						m_flagRunInFor = true;
+
 						nGetTickCountEnd = GetTickCount();
 						nTimeLoop = nGetTickCountEnd - nGetTickCountStart;
 					}
+					// Luu lai thong tin so lan call Statement
+					m_sCodeJS += " } : " + to_string(countExecuteStatement);
+					countExecuteStatement = 0;
+
 					m_pTokenPointer = pTokenParent;
 					if (g_sstrDetectVirusOther)
 						g_sstrDetectVirusOther->bForDecrypRedirect = true;
@@ -3893,6 +3953,8 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 				}
 
 			}
+
+			m_flagRunInFor = false;
 		}
 
 		// ---------------------------------------------------------------------
