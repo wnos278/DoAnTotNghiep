@@ -163,17 +163,15 @@ void CProgramJs::RegisterListAttrRedirect()
 //------------------------------------------------------------------------------
 CProgramJs::CProgramJs()
 {
-	// func
+	// Khoi tao bien dem so lan xuat hien --> danh chi so index
 	m_nameFuncCount = 0;
-	
 	indexInFunc = 0;
 	m_inFunc[indexInFunc] = false;
-	// var
 	m_nameVarCount = 0;
 	m_nameVarInFuncCount = 0;
-	//catch
 	m_nameVarCatchCount = 0;
 	m_nameVarCatchFuncCount = 0;
+
 	m_onreadystatechange = false;
 	m_iCountArrayElement = 0;
 	m_ForIn = false;
@@ -290,13 +288,14 @@ void CProgramJs::SetData(LPVOID pBuffHtmlCode, DWORD dwSizeBuff)
 //------------------------------------------------------------------------------
 BOOLEAN CProgramJs::ResetDatabase()
 {
-	BOOLEAN bResult = FALSE;
+	// Reset index cho lan quet tiep theo
 	m_sCodeSaveJS = "";
 	sSaveFileName = "";
 	m_nameFuncCount = 0;
 	m_nameVarCount = 0;
 	m_nameVarInFuncCount = 0;
 
+	BOOLEAN bResult = FALSE;
 	INT i = 0, nSize = 0;
 	CVarLink* pVLObjDetete = NULL;
 	CVarLink* pVLTmp = NULL;
@@ -542,14 +541,18 @@ vector<CVarLink*> CProgramJs::GetAllChildHtmlElement(CVar *pVObject,
 		{
 			// kiem tra xem day co phai la thanh phan HTML element hay ko
 			pVLPrototypeThisObject = pVObjectSearch->FindChild(STR_PROTOTYPE_CLASS);
-			if (pVLPrototypeThisObject &&
-				pVLPrototypeThisObject->m_pVar == pVHtmlElementPrototype)
+			if (pVHtmlElementPrototype)
 			{
-				// Dua phan tu con vao danh sach
-				lstVLHtmlElement.push_back(pVLFirstChild);
-				// Tim tiep con cua phan tu con nay
-				lstVLHtmlElement = GetAllChildHtmlElement(pVLFirstChild->m_pVar, lstVLHtmlElement);
+				if (pVLPrototypeThisObject &&
+					pVLPrototypeThisObject->m_pVar == pVHtmlElementPrototype)
+				{
+					// Dua phan tu con vao danh sach
+					lstVLHtmlElement.push_back(pVLFirstChild);
+					// Tim tiep con cua phan tu con nay
+					lstVLHtmlElement = GetAllChildHtmlElement(pVLFirstChild->m_pVar, lstVLHtmlElement);
+				}
 			}
+			
 		}
 		pVLFirstChild = pVLFirstChild->m_pNextSibling;
 	}
@@ -722,11 +725,14 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 						else
 							aliasName = "funcVar" + to_string(m_nameVarInFuncCount);
 						pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
-						if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
+						// Kiem tra xem la function chuan hoa hay function native 
+						if (pVLTmpValue && pVLTmpValue->m_sAliasName == aliasName)
+						{
 							if (m_inFunc[indexInFunc] == false)
 								m_nameVarCount += 1;
 							else m_nameVarInFuncCount += 1;
-							m_sCodeSaveJS += " " + pVLTmpValue->m_sAliasName + " ";
+						}
+						m_sCodeSaveJS += " " + pVLTmpValue->m_sAliasName + " ";
 					}
 
 					m_pTokenPointer->Match(TK_ID);
@@ -737,6 +743,7 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 						if (pVLTmpValue && pVLTmpValue->m_pVar)
 						{
 							pVLAfterDots = pVLTmpValue;
+							// Ham dang sau dau cham
 							pVLTmpValue = pVLAfterDots->m_pVar->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, "");
 						}
 						m_pTokenPointer->Match(TK_ID);
@@ -747,9 +754,8 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 					{
 						m_pTokenPointer->Match('=');
 						m_sCodeSaveJS += " = ";
-						bool bExecute = true;
 						CVarLink *pVLValueInit = Base();
-						if (bExecute)
+						if (pVLValueInit)
 							pVLTmpValue->ReplaceWith(pVLValueInit);
 					}
 
@@ -759,8 +765,6 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 						m_sCodeSaveJS += " , ";
 						m_pTokenPointer->Match(',');
 					}
-
-
 					else
 					{
 						break;
@@ -770,14 +774,12 @@ void CProgramJs::GetAllFuncDefineInCode(const string &sCode, int nPosStart)
 			// type token = ID : bien trong stack-----------------------------------
 			if (m_pTokenPointer->m_nTokenId == TK_ID)
 			{
-				CVarLink* pVLTmpValue;
-				pVLTmpValue = Factor();
+				CVarLink* pVLTmpValue = Factor();
 				if (pVLTmpValue)
 				{
 					m_sCodeSaveJS += " " + pVLTmpValue->m_sAliasName + " ";
 					m_pTokenPointer->Match(';');
 				}
-				
 			}
 			m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
 		}
@@ -994,12 +996,20 @@ void CProgramJs::ParseFunctionArguments(CVar *pVLstArgument, bool bIsReDefine)
 		{
 			pVLArg = NULL;
 			if (pVLstArgument)
+			{
 				pVLArg = pVLstArgument->AddChildNoDup(m_pTokenPointer->m_sTokenStr, NULL, "param" + to_string(iParamCount), TRUE);
-			iParamCount += 1;
-			m_sCodeSaveJS += " " + pVLArg->m_sAliasName + " ";
+				iParamCount += 1;
+			}
+				
 			if (pVLArg)
+			{
+				m_sCodeSaveJS += " " + pVLArg->m_sAliasName + " ";
 				if (!bIsReDefine)
-					pVLArg->SetNotReDefine();	// Cai dat cac ham API mac dinh
+					pVLArg->SetNotReDefine();	// Cai dat cac ham API mac dinhv
+			}
+			else
+				iParamCount -= 1;
+				
 
 			m_pTokenPointer->Match(TK_ID);
 			// Nhieu tham so duoc khai bao
@@ -1069,7 +1079,6 @@ void CProgramJs::GetListChildArray(CVar *pVList)
 void CProgramJs::AddFuncNative(const string &sFuncDesc, JSCallback pJSCallBack, void *pUserData)
 {
 	string sFuncName;
-
 	CVar *pVBase = m_pVRootStack;
 	CVar *pVFunc = NULL;
 	CVarLink *pVLLink = NULL;
@@ -1096,7 +1105,7 @@ void CProgramJs::AddFuncNative(const string &sFuncDesc, JSCallback pJSCallBack, 
 			if (pVLLink)
 				pVLLink->SetNotReDefine();
 		}
-		if (pVLLink)
+		if (pVLLink && pVLLink->m_pVar)
 			pVBase = pVLLink->m_pVar;
 		sFuncName = m_pTokenPointer->m_sTokenStr;
 		m_pTokenPointer->Match(TK_ID);
@@ -1284,7 +1293,7 @@ CVarLink *CProgramJs::ParseFunctionDefinition()
 			m_pTokenPointer->Match(TK_ID);	
 		}												
 		if (sFuncName == STR_TEMP_NAME)
-			pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, "noname"+ to_string(m_nameFuncCount));
+			pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, "noname" + to_string(m_nameFuncCount));
 		else
 			pVLFunc = new CVarLink(new CVar(STR_BLANK_DATA, SCRIPTVAR_FUNCTION), sFuncName, "func" + to_string(m_nameFuncCount));
 		m_sCodeSaveJS += " " + pVLFunc->m_sAliasName + " ";
@@ -1295,8 +1304,8 @@ CVarLink *CProgramJs::ParseFunctionDefinition()
 		ParseFunctionArguments(pVLFunc->m_pVar);
 		// luu string szCode dinh nghia Function 
 		// lam du lieu cho thuoc tinh arguments.callee = "function tenHam() {...}"
-		sDefineFunc = m_pTokenPointer->GetSubString(nDefineFuncBegin);
-		nSize = sDefineFunc.size();
+		/*sDefineFunc = m_pTokenPointer->GetSubString(nDefineFuncBegin);
+		nSize = sDefineFunc.size();*/
 	}
 	catch (CRuntimeException* pRE){
 		pREHandleProcess = pRE;
@@ -1304,9 +1313,7 @@ CVarLink *CProgramJs::ParseFunctionDefinition()
 
 	SAFE_THROW(pREHandleProcess);
 	return pVLFunc;
-
 }
-
 
 CVarLink *CProgramJs::RunFunction(CVarLink *pVLFunc, CVar *pVParent, CVar* pVArgumentsValue)
 {
@@ -1444,7 +1451,7 @@ void CProgramJs::AddFuncCallBackBySetInterval(CVar* pVarFunction)
 //------------------------------------------------------------------------------
 // M?c dích: Ki?m tra 1 d?i tu?ng Function dã có trong DS Function Callback.
 // ----------------
-// Vào:	Con tr? d? li?u d?i tu?ng function c?n ki?m tra.
+// Vào:	Con tro du lieu doi tuong function can kiem tra.
 // Ra:	- True (n?u có) / False (n?u ko)
 //------------------------------------------------------------------------------
 BOOL CProgramJs::CheckFuncCallBackBySetInterval(CVar* pVarFunction)
@@ -1509,7 +1516,8 @@ CVarLink *CProgramJs::FunctionCall(CVarLink *pVLFunc, CVar *pVParent)
 			if (pVParent)
 				pVStackLocalFunction->AddChildNoDup("this", pVParent);
 			if (pVLFunc && pVLFunc->m_pVar)
-				pVLFirstArgument = pVLFunc->m_pVar->m_pVLFirstChild;
+				if (pVLFunc->m_pVar->m_pVLFirstChild)
+					pVLFirstArgument = pVLFunc->m_pVar->m_pVLFirstChild;
 			if (pVLFirstArgument && pVLFirstArgument->m_sName == "ARRAY")
 			{
 				pVLArgValue = pVStackLocalFunction->AddChild(pVLFirstArgument->m_sName);
@@ -1631,7 +1639,8 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 			{
 				m_sCodeSaveJS += " ( ";
 				pVLObjectCall = FunctionCall(pVLObjectCall, pVParent);
-				pVLObjectBeginCall = pVLObjectCall;
+				if (pVLObjectCall)
+					pVLObjectBeginCall = pVLObjectCall;
 			}
 			else if (m_pTokenPointer->m_nTokenId == '.')
 			{
@@ -1640,21 +1649,18 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 				// tinh toan voi cac "thuoc tinh || phuong thuc" con cua bien ID
 				m_pTokenPointer->Match('.');
 				sNameChild = m_pTokenPointer->m_sTokenStr;
-				if (pVLObjectCall) // && pVLObjectCall->m_pVar
+				if (pVLObjectCall && pVLObjectCall->m_pVar)
 					pVLChild = pVLObjectCall->m_pVar->FindChild(sNameChild);
 				if (!pVLChild)
 				{
 					// tim trong prototype cua doi tuong
-					if (pVLObjectCall)
+					if (pVLObjectCall && pVLObjectCall->m_pVar)
 						pVLChildInPrototype = FindInParentClasses(pVLObjectCall->m_pVar, sNameChild);
 
 					if (pVLChildInPrototype && pVLChildInPrototype->m_pVar)
 					{
 						if (!pVLChildInPrototype->m_pVar->IsFunction())
 						{
-							// them thuoc tinh rieng cho doi tuong nay 
-							// neu thuoc tinh co trong prototy
-							// va thuoc tinh khong phai la dia chi ham
 							if (pVLObjectCall && pVLObjectCall->m_pVar && pVLChildInPrototype->m_pVar->m_nTypeVar == SCRIPTVAR_DOUBLE)
 							{
 								pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild,
@@ -1667,10 +1673,10 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 							}
 							else
 							{
-								if (pVLObjectCall && pVLObjectCall->m_pVar)
+								if (pVLObjectCall && pVLObjectCall->m_pVar && pVLChildInPrototype && pVLChildInPrototype->m_pVar)
 									pVLChild = pVLObjectCall->m_pVar->AddChild(sNameChild,
-									new CVar(pVLChildInPrototype->m_pVar->m_sData,
-									pVLChildInPrototype->m_pVar->m_nTypeVar));
+										new CVar(pVLChildInPrototype->m_pVar->m_sData,
+										pVLChildInPrototype->m_pVar->m_nTypeVar));
 							}
 						}
 						else
@@ -1682,16 +1688,10 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 				{
 					// if we haven't found this defined yet, use the built-in
 					//	'length' properly 
-					if (pVLObjectCall && pVLObjectCall->m_pVar && pVLObjectCall->m_pVar->IsArray() && sNameChild == "length")
+					if (sNameChild == "length")
 					{
 						m_sCodeSaveJS += " length ";
 						pVLChild = new CVarLink(new CVar(1));
-					}
-					else if (pVLObjectCall && pVLObjectCall->m_pVar && pVLObjectCall->m_pVar->IsString() && sNameChild == "length")
-					{
-						m_sCodeSaveJS += " length ";
-						pVLChild = new CVarLink(new CVar(1));
-
 					}
 					else
 					{
@@ -1699,10 +1699,6 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 
 					}
 				}
-
-				// duyet den phan tu con
-				/*pVParent = pVLObjectCall->m_pVar;
-				pVLObjectCall = pVLChild;*/
 				else if (pVLChild)
 				{
 					m_sCodeSaveJS += " " + pVLChild->m_sName + " ";
@@ -1718,7 +1714,7 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 					throw new CRuntimeException("Loi:: Mang[ViTri] khong duoc dinh nghia");*/
 				m_pTokenPointer->Match(']');
 				m_sCodeSaveJS += " ] ";
-				if (pVLObjectCall && pVLObjectCall->m_pVar)
+				if (pVLObjectCall && pVLObjectCall->m_pVar && pVLIndexOfArray && pVLIndexOfArray->m_pVar)
 				{
 					sNameChild = pVLIndexOfArray->m_pVar->GetString();
 					if (pVLIndexOfArray->m_pVar->IsInt())
@@ -1747,9 +1743,11 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 						}
 					}
 					if (!pVLChildInArray)
+					{
 						//Tra ve gia tri do dai cua mang a[length]...[NDC];
 						if (pVLObjectCall->m_pVar->IsArray() && sNameChild == "length")
 						{
+							m_sCodeSaveJS += " length "; // Them ngay 19/6/20: tinh chinh lai code
 							pVLChildInArray = new CVarLink(new CVar(1));
 						}
 						else if (bStringInt && (pVLObjectCall->m_pVar->IsString()) && (iString < (pVLObjectCall->m_pVar->GetString().size())))
@@ -1762,14 +1760,17 @@ CVarLink *CProgramJs::FactorAdvance(CVarLink* pVLObjectCall, CVar* pVParent)
 						}
 						else if (pVLObjectCall->m_pVar->IsString() && sNameChild == "length")
 						{
+							m_sCodeSaveJS += " length "; // Them ngay 19/6/20: tinh chinh lai code
 							pVLChildInArray = new CVarLink(new CVar(1));
 						}
 						else
 						{
+							m_sCodeSaveJS += " " + sNameChild + " "; // Them ngay 19/6/20: tinh chinh lai code
 							pVLChildInArray = pVLObjectCall->m_pVar->FindChildOrCreate(sNameChild);
 						}
 						/*pVParent = pVLObjectCall->m_pVar;
 						pVLObjectCall = pVLChildInArray;*/
+					}
 				}
 			}
 			else if (m_pTokenPointer->m_nTokenId == ':')
@@ -1892,9 +1893,10 @@ CVarLink *CProgramJs::Factor()
 		// type token = ID : bien trong stack-----------------------------------
 		if (m_pTokenPointer->m_nTokenId == TK_ID)
 		{
+			// Tim bien trong stack theo kieu this[FunctionName](xyz) .... [NDC]
 			if (m_pTokenPointer->m_sTokenStr == "this" && m_pTokenPointer->m_currCh == '[')
 			{
-				// this['function']['...']()
+
 				m_sCodeSaveJS += " this ";
 				m_pTokenPointer->Match(TK_ID);
 				m_pTokenPointer->Match('[');
@@ -1902,13 +1904,13 @@ CVarLink *CProgramJs::Factor()
 				pVLIndexOfArrayThis = Base();
 				if (pVLIndexOfArrayThis && pVLIndexOfArrayThis->m_pVar)
 					sNameChildThis = pVLIndexOfArrayThis->m_pVar->GetString();
-				if (sNameChildThis != "")
-					pVLValueReturn = FindInScopes(sNameChildThis);
+				
+				pVLValueReturn = FindInScopes(sNameChildThis);
 				if (!pVLValueReturn)
 				{
 					pVLValueReturn = new CVarLink(new CVar(), sNameChildThis);
-					m_sCodeSaveJS += " " + sNameChildThis + " ";
 				}
+				m_sCodeSaveJS += " " + sNameChildThis + " ";
 				if (m_pTokenPointer->m_nTokenId == ']')
 				{
 					m_sCodeSaveJS += " ] ";
@@ -1916,6 +1918,7 @@ CVarLink *CProgramJs::Factor()
 				}
 				else
 				{
+					// Loc bo nhung ky tu khong phai la chu cai hoac so
 					if (m_pTokenPointer->m_nTokenId >= 32 && m_pTokenPointer->m_nTokenId <= 126)
 					{
 						string temp(1, m_pTokenPointer->m_nTokenId);
@@ -1923,8 +1926,6 @@ CVarLink *CProgramJs::Factor()
 					}
 					m_pTokenPointer->Match(m_pTokenPointer->m_nTokenId);
 				}
-
-
 				pVLValueReturn = FactorAdvance(pVLValueReturn, pVParent);
 			}
 			else if (m_pTokenPointer->m_sTokenStr == "self")

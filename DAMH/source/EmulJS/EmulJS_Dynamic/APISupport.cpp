@@ -1070,35 +1070,13 @@ void scEval(CVar *pVLocalStack, void *pUserData)
 	};
 	vector<string> lstVLDownloaderVirus(args, args + 1);
 
-		for (size_t idxDownloaderVirus = 0; idxDownloaderVirus < lstVLDownloaderVirus.size(); idxDownloaderVirus++)
+	for (size_t idxDownloaderVirus = 0; idxDownloaderVirus < lstVLDownloaderVirus.size(); idxDownloaderVirus++)
+	{
+		if (sJsCode.find(lstVLDownloaderVirus.at(idxDownloaderVirus)) != string::npos)
 		{
-			if (sJsCode.find(lstVLDownloaderVirus.at(idxDownloaderVirus)) != string::npos)
-			{
-				g_sstrDetectDownloader->bString = true;
-			}
+			g_sstrDetectDownloader->bString = true;
 		}
-		//check virus đoạn mã trong eval
-		/*dwVirusType = fileJS->CheckVirusEval(sJsCode);
-		if (dwVirusType)
-		{
-			if (dwVirusType==VR_TYPE_DOWNLOADER)
-			{
-				pREHadVirus = new CRuntimeException(VR_NAME_DOWNLOADER, EXCEPTIONID_FOUND_VIRUS, false);
-				pREHadVirus->SetVirusName(VR_NAME_DOWNLOADER);
-			}
-			else if (dwVirusType == VR_TYPE_EVAL)
-			{
-				pREHadVirus = new CRuntimeException(VR_NAME_EVAL, EXCEPTIONID_FOUND_VIRUS, false);
-				pREHadVirus->SetVirusName(VR_NAME_EVAL);
-			}
-			else
-			{
-				pREHadVirus = new CRuntimeException(VR_NAME_REDIRECT, EXCEPTIONID_FOUND_VIRUS, false);
-				pREHadVirus->SetVirusName(VR_NAME_REDIRECT);
-			}
-			throw pREHadVirus;
-		}*/
-
+	}
 
 	if (sJsCode.size() > 0)
 	{

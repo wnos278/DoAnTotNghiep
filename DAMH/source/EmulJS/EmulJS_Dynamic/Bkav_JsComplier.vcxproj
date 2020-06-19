@@ -384,7 +384,8 @@
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>GitVersion.bat "$(SolutionDir)" "$(ProjectDir)" FileVersion.txt FileVersion.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_LOG|Win32'">
@@ -488,6 +489,7 @@
     <ClInclude Include="RulesCheckVirus.h" />
     <ClInclude Include="RuntimeException.h" />
     <ClInclude Include="APISupport.h" />
+    <ClInclude Include="sha256.h" />
     <ClInclude Include="TokenPointer.h" />
     <ClInclude Include="Var.h" />
     <ClInclude Include="VarLink.h" />
@@ -502,6 +504,7 @@
     <ClCompile Include="ProgramJs.cpp" />
     <ClCompile Include="RuntimeException.cpp" />
     <ClCompile Include="APISupport.cpp" />
+    <ClCompile Include="sha256.cpp" />
     <ClCompile Include="TempStack.cpp" />
     <ClCompile Include="TokenPointer.cpp" />
     <ClCompile Include="Var.cpp" />

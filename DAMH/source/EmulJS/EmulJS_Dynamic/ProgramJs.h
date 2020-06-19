@@ -305,8 +305,7 @@ public:
 	int m_countVarName;
 	int m_countFuncVarName;
 	bool m_flagRunInFunc;
-	bool m_flagRunInFor;
-	
+	bool m_flagInLoop; 
 };
 
 #endif 
