@@ -960,8 +960,8 @@ _EXIT_FUNCTION:
 //------------------------------------------------------------------------------
 void CProgramJs::Execute(const string &sCode, bool bExecute)
 {
-	CTokenPointer *pTokenPointerOld;	// Lưu con trỏ hiện tại
-	vector<CVar*> lstVStackOld;		// lưu danh sách các stack hiện tại
+	CTokenPointer *pTokenPointerOld;
+	vector<CVar*> lstVStackOld;		
 	CRuntimeException *pREHandleProcess = NULL;
 
 	// save searchPointer && m_listStack when run in Function
@@ -970,29 +970,27 @@ void CProgramJs::Execute(const string &sCode, bool bExecute)
 
 	if (m_onreadystatechange != true)
 	{
-		// Tạo stack mới
+		// Create new Stack
 		m_lstStack.clear();
 		m_lstStack.push_back(m_pVRootStack);  // ---> RootStack
 	}
 
 	try
 	{
-		// khởi tạo con trỏ m_TokenPointer quét code mới
+		// Init pointer to check new code
 		m_pTokenPointer = new CTokenPointer(sCode);
 
 		try
 		{
-			// Lấy tất cả các định nghĩa hàm trong code
+			// Get Define of code
 			GetAllFuncDefineInCode(sCode);
 		}
 		catch (CRuntimeException *pRE){
 			SAFE_DELETE(pRE);
 		}
 		
-		// Thực thi code
 		while (m_pTokenPointer->m_nTokenId)
 		{
-			// Bat dau mot cau lenh moi
 			Statement(bExecute);
 		}
 		
@@ -1001,8 +999,9 @@ void CProgramJs::Execute(const string &sCode, bool bExecute)
 	{
 		pREHandleProcess = pRE;
 	}
+
+	// Clean code 
 	m_sCodeJS = XuLyChuoiTinh(m_sCodeJS);
-	// restore searchPointer && m_listStack to continute running
 	m_pTokenPointer = pTokenPointerOld;
 	m_lstStack = lstVStackOld;
 

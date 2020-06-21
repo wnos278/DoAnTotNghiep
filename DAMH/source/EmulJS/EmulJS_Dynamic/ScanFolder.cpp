@@ -52,7 +52,7 @@ int main(void)
 
 	// Thu muc chua mau can test
 	_stprintf_s(wszPathFile, _T(
-		"C:\\Users\\sontdc\\Desktop\\virus2"
+		"C:\\Users\\takak\\Desktop\\virus2"
 	));
 	_CrtDumpMemoryLeaks();
 

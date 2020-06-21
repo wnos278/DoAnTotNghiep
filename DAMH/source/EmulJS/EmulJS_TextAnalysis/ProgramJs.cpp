@@ -2753,19 +2753,22 @@ bool CProgramJs::Statement()
 				// Tim var trong stack >> pVLTmpValue
 				if (m_lstStack.size() > 0)
 				{
-					// sontdc
-					string aliasName = "";
-					if (m_inFunc[indexInFunc] == false)
+					// chuan hoa name of var 
+					string aliasName;
+					if (!m_inFunc[indexInFunc])
 					{
 						aliasName = "globalVar" + to_string(m_nameVarCount);
 					}
 					else
 						aliasName = "funcVar" + to_string(m_nameVarInFuncCount);
 					pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
-					if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
-						if (m_inFunc[indexInFunc] == false)
+					if (pVLTmpValue->m_sAliasName == aliasName) // Create Child with aliasName and real name
+					{
+						if (!m_inFunc[indexInFunc])
 							m_nameVarCount += 1;
 						else m_nameVarInFuncCount += 1;
+					}
+						
 					m_sCodeSaveJS += " " + pVLTmpValue->m_sAliasName + " ";
 				}
 
@@ -2812,16 +2815,22 @@ bool CProgramJs::Statement()
 		// Process Block: IF ( condition ) { ... } ELSE { ... }  
 		else if (m_pTokenPointer->m_nTokenId == TK_R_IF)
 		{
+
 			m_sCodeSaveJS += " if ";
 			m_pTokenPointer->Match(TK_R_IF);
 
-			m_sCodeSaveJS += " ( ";
-			m_pTokenPointer->Match('(');
+			// Xu ly dieu kien trong dau ( ): if ( )
+			{
+				m_sCodeSaveJS += " ( ";
+				m_pTokenPointer->Match('(');
 
-			Base();
-			m_pTokenPointer->Match(')');
-			m_sCodeSaveJS += " ) ";
+				Base();
 
+				m_pTokenPointer->Match(')');
+				m_sCodeSaveJS += " ) ";
+			}
+
+			// Xu ly Block Code IF () { BLOCK CODE }
 			Statement();
 
 			if (m_pTokenPointer->m_nTokenId == TK_R_ELSE)
@@ -2848,11 +2857,15 @@ bool CProgramJs::Statement()
 		{
 			m_pTokenPointer->Match(TK_R_WHILE);
 			m_sCodeSaveJS += " while ";
-			m_pTokenPointer->Match('(');
-			m_sCodeSaveJS += " ( ";
-			Base();
-			m_pTokenPointer->Match(')');
-			m_sCodeSaveJS += " ) ";
+
+			{
+				m_pTokenPointer->Match('(');
+				m_sCodeSaveJS += " ( ";
+				Base();
+				m_pTokenPointer->Match(')');
+				m_sCodeSaveJS += " ) ";
+			}
+
 			Statement();
 		}
 		//----------------------------------------------------------------------
@@ -2863,6 +2876,8 @@ bool CProgramJs::Statement()
 		{
 			m_sCodeSaveJS += " for ";
 			m_pTokenPointer->Match(TK_R_FOR);
+
+			
 			m_pTokenPointer->Match('(');
 			m_sCodeSaveJS += " ( ";
 
@@ -2940,7 +2955,6 @@ bool CProgramJs::Statement()
 						SetMsgRunInTryCatch(EXCEPTION_ID_NOTFOUND_IN_TRYCATCH, m_pTokenPointer->m_sTokenStr, NULL);
 					}
 
-					/*m_pTokenPointer->Match(TK_ID);*/
 					m_pTokenPointer->Match(TK_R_IN);
 					m_sCodeSaveJS += " in ";
 					//lay gia tri cua y trong x in y
@@ -2959,6 +2973,8 @@ bool CProgramJs::Statement()
 					m_pTokenPointer->Match(TK_ID);
 					m_pTokenPointer->Match(')');
 					m_sCodeSaveJS += " ) ";
+
+
 					Statement();
 					bForIn = true;
 				}
@@ -3006,9 +3022,6 @@ bool CProgramJs::Statement()
 			pVLTmpValue = NULL;
 			if (m_pTokenPointer->m_nTokenId != ';')
 				pVLTmpValue = Base();
-			pVLReturn = m_lstStack.back()->FindChild(STR_RETURN_VAR);
-			if (pVLReturn)
-				pVLReturn->ReplaceWith(pVLTmpValue);
 			m_pTokenPointer->Match(';');
 		}
 
@@ -3025,9 +3038,7 @@ bool CProgramJs::Statement()
 			if (pVLTmpValue) 
 			{
 				if (pVLTmpValue->m_sName == STR_TEMP_NAME)
-				{
 					OutputDebug("Functions defined at statement-level are meant to have a name\n");
-				}
 				else
 				{
 					m_lstStack.back()->AddChildNoDup(pVLTmpValue->m_sName, pVLTmpValue->m_pVar, pVLTmpValue->m_sAliasName);
@@ -3055,30 +3066,36 @@ bool CProgramJs::Statement()
 			{
 				m_sCodeSaveJS += " catch ";
 				m_pTokenPointer->Match(TK_R_CATCH);
-				m_pTokenPointer->Match('(');
-				m_sCodeSaveJS += " ( ";
-				//them bien exception
 
-				if (m_lstStack.size() > 0)
+				// BLOCK CODE: XU LY CATCH ( CONDITION )
 				{
-					// sontdc
-					string aliasName = "";
-					if (m_inFunc[indexInFunc] == false)
+					m_pTokenPointer->Match('(');
+					m_sCodeSaveJS += " ( ";
+					//them bien exception
+
+					if (m_lstStack.size() > 0)
 					{
-						aliasName = "globalCatchVar" + to_string(m_nameVarCatchCount);
-					}
-					else
-						aliasName = "catchVar" + to_string(m_nameVarCatchFuncCount);
-					pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
-					if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
+						// sontdc
+						string aliasName = "";
 						if (m_inFunc[indexInFunc] == false)
-							m_nameVarCatchCount += 1;
-						else m_nameVarCatchFuncCount += 1;
-						m_sCodeSaveJS += " " + pVLTmpValue->m_sAliasName + " ";
+						{
+							aliasName = "globalCatchVar" + to_string(m_nameVarCatchCount);
+						}
+						else
+							aliasName = "catchVar" + to_string(m_nameVarCatchFuncCount);
+						pVLTmpValue = m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, aliasName);
+						if (pVLTmpValue->m_sAliasName == aliasName) // Neu la bien moi
+							if (m_inFunc[indexInFunc] == false)
+								m_nameVarCatchCount += 1;
+							else m_nameVarCatchFuncCount += 1;
+							m_sCodeSaveJS += " " + pVLTmpValue->m_sAliasName + " ";
+					}
+					m_pTokenPointer->Match(TK_ID);
+					m_pTokenPointer->Match(')');
+					m_sCodeSaveJS += " ) ";
 				}
-				m_pTokenPointer->Match(TK_ID);
-				m_pTokenPointer->Match(')');
-				m_sCodeSaveJS += " ) ";
+
+				// Doan ma trong BLOCK CATCH
 				Statement();
 
 			}
