@@ -25,8 +25,8 @@
 
 extern CProgramJs*	g_pProgramJs;
 extern DWORD		g_dwTimeStartScan;
-extern PDETECT_DOWNLOADER g_sstrDetectDownloader;
-extern PDETECT_VIRUSOTHER g_sstrDetectVirusOther;
+//extern PDETECT_DOWNLOADER g_sstrDetectDownloader;
+//extern PDETECT_VIRUSOTHER g_sstrDetectVirusOther;
 
 char* g_szTopOfStack;
 int g_iNotEnoughMem = 0;
@@ -175,7 +175,8 @@ CProgramJs::CProgramJs()
 	m_countParamName = 0;
 	m_countVarName = 0;
 	m_countFuncVarName = 0;
-	m_flagRunInFunc = false;
+	indexInFunc = 0;
+	m_flagRunInFunc[indexInFunc] = false;
 	m_flagInLoop = false;
 	
 
@@ -306,7 +307,8 @@ BOOLEAN CProgramJs::ResetDatabase()
 	m_countParamName = 0;
 	m_countVarName = 0;
 	m_countFuncVarName = 0;
-	m_flagRunInFunc = false;
+	indexInFunc = 0;
+	m_flagRunInFunc[indexInFunc] = false;
 	// Reset save file
 	g_sSaveFileName = "";
 
@@ -1620,6 +1622,10 @@ BOOL CProgramJs::CheckFuncCallBackBySetInterval(CVar* pVarFunction)
 //------------------------------------------------------------------------------
 CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVParent, bool bExecuteInEval)
 {
+	indexInFunc += 1;
+	if (bExecute)
+		m_flagRunInFunc[indexInFunc] = true;
+	
 	BOOLEAN bIsPushedLocalStack = FALSE;
 	BOOLEAN bFunctionNDC = FALSE;
 	CVar *pVStackLocalFunction = NULL;
@@ -1789,12 +1795,10 @@ CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVPa
 					catch (CRuntimeException *pRE){
 						SAFE_DELETE(pRE);
 					}
-					m_sCodeJS += " { ";
 
 					// thuc hien code than ham
 					BlockCode(bExecute);
 
-					m_sCodeJS += " } ";
 					// because return will probably have called this, and set execute to false
 					bExecute = true;
 				}
@@ -1842,6 +1846,10 @@ CVarLink *CProgramJs::FunctionCall(bool &bExecute, CVarLink *pVLFunc, CVar *pVPa
 		/* get the real return var before we remove it from our function */
 		//  		if (pVLFuncReturn)
 		//  			pVLReturn = new CVarLink(pVLFuncReturn->m_pVar);
+
+		// Reset lai bien check dang trong ham
+		m_flagRunInFunc[indexInFunc] = false;
+		indexInFunc -= 1;
 
 		SAFE_THROW(pRuntimeException);
 		return pVLReturn;
@@ -1923,14 +1931,14 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 			if (m_pTokenPointer->m_nTokenId == '(')
 			{
 				// luu ten ham goi
-				if (m_flagInLoop == false)
+				/*if (m_flagInLoop == false)
 				{
 					if (pVLObjectCall->m_sAliasName != "")
 						m_sCodeJS += " " + pVLObjectCall->m_sAliasName + "  ";
 					else
 						m_sCodeJS += " " + pVLObjectCall->m_sName + " ";
 
-				}
+				}*/
 					
 				
 				pVLObjectCall = FunctionCall(bExecute, pVLObjectCall, pVParent, bExecuteInEval);
@@ -2010,11 +2018,11 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 						{
 							nLenghtArray = pVLObjectCall->m_pVar->GetArrayLength();
 							pVLChild = new CVarLink(new CVar(nLenghtArray));
-							if (nLenghtArray >= 7000)
-							{
-								if (g_sstrDetectDownloader)
-									g_sstrDetectDownloader->bFor7k = true;
-							}
+							//if (nLenghtArray >= 7000)
+							//{
+							//	if (g_sstrDetectDownloader)
+							//		g_sstrDetectDownloader->bFor7k = true;
+							//}
 						}
 						else if (pVLObjectCall && pVLObjectCall->m_pVar && pVLObjectCall->m_pVar->IsString() && sNameChild == "length") 
 						{
@@ -2085,11 +2093,11 @@ CVarLink *CProgramJs::FactorAdvance(bool &bExecute, CVarLink* pVLObjectCall, CVa
 					{
 						nLenghtArray = pVLObjectCall->m_pVar->GetArrayLength();
 						pVLChildInArray = new CVarLink(new CVar(nLenghtArray));
-						if (nLenghtArray >= 7000)
-						{
-							if (g_sstrDetectDownloader)
-								g_sstrDetectDownloader->bFor7k = true;
-						}
+						//if (nLenghtArray >= 7000)
+						//{
+						//	if (g_sstrDetectDownloader)
+						//		g_sstrDetectDownloader->bFor7k = true;
+						//}
 					}
 					else if (bStringInt && (pVLObjectCall->m_pVar->IsString()) && (iString >= 0) && (iString < (pVLObjectCall->m_pVar->GetString().size())))
 					{
@@ -2252,10 +2260,29 @@ CVarLink *CProgramJs::Factor(bool &bExecute, bool bExecuteInEval)
 				{
 					/* Variable doesn't exist! JavaScript says we should create it
 					* (we won't add it here. This is done in the assignment operator)*/
-					pVLValueReturn = new CVarLink(new CVar(), m_pTokenPointer->m_sTokenStr);
+					if (m_flagRunInFunc)
+					{
+						pVLValueReturn = new CVarLink(new CVar(), m_pTokenPointer->m_sTokenStr, "funcVar" + to_string(m_countFuncVarName));
+						// Them vao stack de chuan hoa
+						m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, "funcVar" + to_string(m_countFuncVarName));
+						m_countFuncVarName += 1;
+					}
+					else
+					{
+						pVLValueReturn = new CVarLink(new CVar(), m_pTokenPointer->m_sTokenStr, "globalVar" + to_string(m_countVarName));
+						// Them vao stack de chuan hoa
+						m_lstStack.back()->FindChildOrCreate(m_pTokenPointer->m_sTokenStr, "globalVar" + to_string(m_countFuncVarName));
+						m_countVarName += 1;
+					}
 					SetMsgRunInTryCatch(EXCEPTION_ID_NOTFOUND_IN_TRYCATCH, m_pTokenPointer->m_sTokenStr, NULL);
 					if (m_flagInLoop == false)
-						m_sCodeJS += " " + sNameChildThis + " ";
+					{
+						if (pVLValueReturn->m_sAliasName != "")
+							m_sCodeJS += " " + pVLValueReturn->m_sAliasName + " ";
+						else 
+							m_sCodeJS += " " + pVLValueReturn->m_sName + " ";
+					}
+						
 				}
 				else
 					if (m_flagInLoop == false)
@@ -3099,8 +3126,8 @@ CVarLink *CProgramJs::Base(bool &bExecute, bool bExecuteInEval)
 				// Xu ly phep toan
 				if (nOp == '=')
 				{
-					if (m_flagInLoop == false)
-						m_sCodeJS += " = ";
+					/*if (m_flagInLoop == false)
+						m_sCodeJS += " = ";*/
 					// Neu bien window.onload = dia chi ham -> thuc hien ham
 					if (pVLLeftOperand == m_pVLWindowOnload || pVLLeftOperand == m_pVLDStringOnreadyStateChange)
 					{
@@ -3271,6 +3298,7 @@ CVarLink *CProgramJs::Base(bool &bExecute, bool bExecuteInEval)
 // -----------------------------------------------------------------------------
 bool CProgramJs::BlockCode(bool &bExecute, bool bExecuteInEval)
 {
+	
 	bool bResultExeBlock = true;
 	int nBracketsLevel = 1;
 
@@ -3280,15 +3308,25 @@ bool CProgramJs::BlockCode(bool &bExecute, bool bExecuteInEval)
 	m_pTokenPointer->Match('{');
 	if (bExecute)
 	{
-		m_flagRunInFunc = true;
+		if (!m_flagInLoop)
+		{
+			m_sCodeJS += " { ";
+		}
+		
+
+		m_flagRunInFunc[indexInFunc] = true;
 		// Thuc hien khoi lenh trong ngoac { ... }
 		// Ket qua chay khoi lenh = false neu co 1 lenh chay sai
 		while (m_pTokenPointer->m_nTokenId && m_pTokenPointer->m_nTokenId != '}')
 			SAVE_BOOL_RETURN(bResultExeBlock, Statement(bExecute, bExecuteInEval));
 		// End block code
-		m_flagRunInFunc = false;
+		m_flagRunInFunc[indexInFunc] = false;
 		m_pTokenPointer->Match('}'); 
 
+		if (!m_flagInLoop)
+		{
+			m_sCodeJS += " } ";
+		}
 	}
 	else
 	{
@@ -3314,8 +3352,8 @@ bool CProgramJs::BlockCode(bool &bExecute, bool bExecuteInEval)
 // -----------------------------------------------------------------------------
 bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 {
-	if (bExecute)
-		m_sCodeJS += " { ";
+	//if (bExecute)
+	//	m_sCodeJS += " { ";
 	CRuntimeException *pExceptionVr = NULL;
 
 	CTokenPointer* pTokenParent = m_pTokenPointer;
@@ -3583,7 +3621,17 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 					
 				}
 				// luu ra thong tin so lan lap cua do ... while
-				m_sCodeJS += " : " + to_string(countExecuteStatement);
+				if (countExecuteStatement < 10)
+					m_sCodeJS += " : short ";
+				else if (countExecuteStatement < 50)
+					m_sCodeJS += " : medium ";
+				else if (countExecuteStatement < 100)
+					m_sCodeJS += " : uppermedium";
+				else if (countExecuteStatement < 500)
+					m_sCodeJS += " : long ";
+				else
+					m_sCodeJS += "  : longlong ";
+
 				// Reset
 				countExecuteStatement = 0;
 
@@ -3600,8 +3648,8 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			catch (CRuntimeException* pRE)  
 			{
 				nErrId = pRE->GetErrId();
-				if (g_sstrDetectVirusOther)
-					g_sstrDetectVirusOther->bForDecrypRedirect = true;
+				//if (g_sstrDetectVirusOther)
+				//	g_sstrDetectVirusOther->bForDecrypRedirect = true;
 				if (nErrId == EXCEPTION_THROW_BREAK)
 				{
 					OutputDebugStringA("break in DO...While");
@@ -3654,7 +3702,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			// continue Loops From Second ......................................
 			nLoopCount = JS_LOOP_MAX_ITERATIONS;
 			nTimeLoop = 0;
-
+			int countExecuteStatement = 0;
 			try
 			{
 				while (bLoopCond && bResultRunStatement && (nLoopCount-- > 0) &&(nTimeLoop < JS_LOOP_MAX_TIME))
@@ -3670,14 +3718,27 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 					{
 						pTokenBody->Reset();
 						m_pTokenPointer = pTokenBody;
+						countExecuteStatement += 1;
 						SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
 					}
 				}
 
+				// Chuan hoa vong lap
+				if (countExecuteStatement < 10)
+					m_sCodeJS += " : short ";
+				else if (countExecuteStatement < 50)
+					m_sCodeJS += " : medium ";
+				else if (countExecuteStatement < 100)
+					m_sCodeJS += " : uppermedium";
+				else if (countExecuteStatement < 500)
+					m_sCodeJS += " : long ";
+				else
+					m_sCodeJS += "  : longlong ";
+
 				m_pTokenPointer = pTokenParent;
 				//bien luu co su dung vong lap de giai ma ra mau redirector
-				if (g_sstrDetectVirusOther)
-					g_sstrDetectVirusOther->bForDecrypRedirect = true;
+				//if (g_sstrDetectVirusOther)
+				//	g_sstrDetectVirusOther->bForDecrypRedirect = true;
 
 				if (nLoopCount <= 0)
 				{
@@ -3690,8 +3751,8 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			catch (CRuntimeException* pRE)
 			{
 				nErrId = pRE->GetErrId();
-				if (g_sstrDetectVirusOther)
-					g_sstrDetectVirusOther->bForDecrypRedirect = true;
+				//if (g_sstrDetectVirusOther)
+				//	g_sstrDetectVirusOther->bForDecrypRedirect = true;
 				if (nErrId == EXCEPTION_THROW_BREAK)
 				{
 					OutputDebugStringA("break in while");
@@ -3757,11 +3818,11 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 					if (pVLValueForInArray->m_pVar && pVLValueForInArray->m_pVar->IsArray())
 						nLenghtArrayForIn = pVLValueForInArray->m_pVar->GetArrayLength();
 					//dieu kien bat doi voi vong for>=7000
-					if (nLenghtArrayForIn >= 7000)
-					{
-						if (g_sstrDetectDownloader)
-							g_sstrDetectDownloader->bFor7k = true;
-					}
+					//if (nLenghtArrayForIn >= 7000)
+					//{
+					//	if (g_sstrDetectDownloader)
+					//		g_sstrDetectDownloader->bFor7k = true;
+					//}
 
 					m_pTokenPointer->Match(TK_ID);
 					m_pTokenPointer->Match(')');
@@ -3795,6 +3856,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 					 
 					nLoopCount = JS_LOOP_MAX_ITERATIONS;
 					nArrayForInStart = 0;
+					int countExecuteStatement = 0;
 					while (bLoopCond && bResultRunStatement && (nLoopCount-- > 0) )
 					{
 						nArrayForInStart++;								
@@ -3813,10 +3875,22 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 						{
 							pTokenBody->Reset();
 							m_pTokenPointer = pTokenBody;
+							countExecuteStatement += 1;
 							SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
 						}
 						
 					}
+					// chuan hoa so lan lap trong vong for
+					if (countExecuteStatement < 10)
+						m_sCodeJS += " : short ";
+					else if (countExecuteStatement < 50)
+						m_sCodeJS += " : medium ";
+					else if (countExecuteStatement < 100)
+						m_sCodeJS += " : uppermedium";
+					else if (countExecuteStatement < 500)
+						m_sCodeJS += " : long ";
+					else
+						m_sCodeJS += "  : longlong ";
 
 					m_pTokenPointer = pTokenParent;
 					//neu qua so lan lap 
@@ -3971,6 +4045,7 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 						{
 							pTokenBody->Reset();
 							m_pTokenPointer = pTokenBody;
+							countExecuteStatement += 1;
 							SAVE_BOOL_RETURN(bResultRunStatement, Statement(bExecute, bExecuteInEval));
 						}
 						if (bExecute && bLoopCond) 
@@ -3991,9 +4066,21 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 						nTimeLoop = nGetTickCountEnd - nGetTickCountStart;
 					}
 
+					// Chuan hoa lai vong lap
+					if (countExecuteStatement < 10)
+						m_sCodeJS += " : short ";
+					else if (countExecuteStatement < 50)
+						m_sCodeJS += " : medium ";
+					else if (countExecuteStatement < 100)
+						m_sCodeJS += " : uppermedium";
+					else if (countExecuteStatement < 500)
+						m_sCodeJS += " : long ";
+					else
+						m_sCodeJS += "  : longlong ";
+
 					m_pTokenPointer = pTokenParent;
-					if (g_sstrDetectVirusOther)
-						g_sstrDetectVirusOther->bForDecrypRedirect = true;
+					//if (g_sstrDetectVirusOther)
+					//	g_sstrDetectVirusOther->bForDecrypRedirect = true;
 					if (nLoopCount <= 0)
 					{
 						//m_pRootStack->Trace();
@@ -4004,8 +4091,8 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 				}
 				catch (CRuntimeException* pRE)
 				{
-					if (g_sstrDetectVirusOther)
-						g_sstrDetectVirusOther->bForDecrypRedirect = true;
+					//if (g_sstrDetectVirusOther)
+					//	g_sstrDetectVirusOther->bForDecrypRedirect = true;
 					nErrId = pRE->GetErrId();
 					if (nErrId == EXCEPTION_THROW_BREAK)
 					{
@@ -4035,9 +4122,39 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 			{
 				pVLReturn = m_lstStack.back()->FindChild(STR_RETURN_VAR);
 				if (pVLReturn)
+				{
 					pVLReturn->ReplaceWith(pVLTmpValue);
+					if (!m_flagInLoop)
+					{
+						if (pVLTmpValue)
+
+						{
+							if (pVLTmpValue->m_pVar->IsString()) m_sCodeJS += " return string ";
+							if (pVLTmpValue->m_pVar->IsInt()) m_sCodeJS += " return int ";
+							if (pVLTmpValue->m_pVar->IsArray()) m_sCodeJS += " return array ";
+							if (pVLTmpValue->m_pVar->IsDouble()) m_sCodeJS += " return double ";
+							if (pVLTmpValue->m_pVar->IsNull()) m_sCodeJS += " return null ";
+							if (pVLTmpValue->m_pVar->IsFunction()) m_sCodeJS += " return function ";
+							if (pVLTmpValue->m_pVar->IsNative()) m_sCodeJS += " return native ";
+							if (pVLTmpValue->m_pVar->IsObject()) m_sCodeJS += " return object ";
+							if (pVLTmpValue->m_pVar->IsRegex()) m_sCodeJS += " return regex ";
+							if (pVLTmpValue->m_pVar->IsUndefined()) m_sCodeJS += " return undefined ";
+						}
+						else 
+							m_sCodeJS += " return none ";
+					}
+					
+				}
+					
 				else
+				{
+					if (!m_flagInLoop)
+					{
+						m_sCodeJS += " return statement ";
+					}
 					OutputDebug("RETURN statement, but not in a function.");
+				}
+					
 				bExecute = false;
 			}
 			m_pTokenPointer->Match(';');
@@ -4234,8 +4351,8 @@ bool CProgramJs::Statement(bool &bExecute, bool bExecuteInEval)
 
 	// FINALLY >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	m_pTokenPointer = pTokenParent;
-	if (bExecute)
-		m_sCodeJS += " } ";
+	//if (bExecute)
+	//	m_sCodeJS += " } ";
 	// Exception VR >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 	SAFE_THROW(pExceptionVr);
 	// tra ve ket qua thuc hien cau lenh
@@ -4511,10 +4628,10 @@ bool EmulJS(SCANRESULT* pResult, LPVOID pBuffDataHtml, DWORD dwSizeBuf)
 			// Lan luot thực thi tung doan code js tu tren xuong duoi
 			for (i = 0; i < nCountSzCodeJs; i++)
 			{
-				g_sstrDetectVirusOther = new DETECT_VIRUSOTHER;
-				ZeroMemory(g_sstrDetectVirusOther, sizeof(DETECT_VIRUSOTHER));
-				g_sstrDetectDownloader = new DETECT_DOWNLOADER;
-				ZeroMemory(g_sstrDetectDownloader, sizeof(DETECT_DOWNLOADER));
+				//g_sstrDetectVirusOther = new DETECT_VIRUSOTHER;
+				//ZeroMemory(g_sstrDetectVirusOther, sizeof(DETECT_VIRUSOTHER));
+				//g_sstrDetectDownloader = new DETECT_DOWNLOADER;
+				//ZeroMemory(g_sstrDetectDownloader, sizeof(DETECT_DOWNLOADER));
 				sCodeJs = lstsCodeJs.at(i);
 
 				try 
@@ -4526,8 +4643,8 @@ bool EmulJS(SCANRESULT* pResult, LPVOID pBuffDataHtml, DWORD dwSizeBuf)
 						// Chạy code js , code binh thuong khong tra ra exception
 						g_pProgramJs->Execute(sCodeJs);
 					}
-					SAFE_DELETE(g_sstrDetectDownloader);
-					SAFE_DELETE(g_sstrDetectVirusOther);
+					//SAFE_DELETE(g_sstrDetectDownloader);
+					//SAFE_DELETE(g_sstrDetectVirusOther);
 				}
 				// Bat duoc virus
 				catch (CRuntimeException *pRE)
@@ -4611,7 +4728,7 @@ bool EmulJS(SCANRESULT* pResult, LPVOID pBuffDataHtml, DWORD dwSizeBuf)
 	}
 	else
 	{
-		OutputDebug("Khong ton tai file ghih ra");
+		OutputDebug("Khong ton tai file ghi ra");
 	}
 	
 	// free data 
@@ -4624,8 +4741,8 @@ bool EmulJS(SCANRESULT* pResult, LPVOID pBuffDataHtml, DWORD dwSizeBuf)
 	//CleanVLTempStack();
 	//CleanTempStack();
 #endif
-	SAFE_DELETE(g_sstrDetectDownloader);
-	SAFE_DELETE(g_sstrDetectVirusOther);
+	//SAFE_DELETE(g_sstrDetectDownloader);
+	//SAFE_DELETE(g_sstrDetectVirusOther);
 
 	DbgPrintLnA("%s", "Exit Scanfile ...");
 	return bResultScan;

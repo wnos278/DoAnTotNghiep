@@ -14,10 +14,6 @@
 #include <sstream>
 using namespace std;
 
-
-PDETECT_DOWNLOADER g_sstrDetectDownloader;
-PDETECT_VIRUSOTHER g_sstrDetectVirusOther;
-
 #ifdef _DEBUG
 #ifndef DBG_NEW
 #define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )
@@ -1070,13 +1066,13 @@ void scEval(CVar *pVLocalStack, void *pUserData)
 	};
 	vector<string> lstVLDownloaderVirus(args, args + 1);
 
-	for (size_t idxDownloaderVirus = 0; idxDownloaderVirus < lstVLDownloaderVirus.size(); idxDownloaderVirus++)
-	{
-		if (sJsCode.find(lstVLDownloaderVirus.at(idxDownloaderVirus)) != string::npos)
-		{
-			g_sstrDetectDownloader->bString = true;
-		}
-	}
+	//for (size_t idxDownloaderVirus = 0; idxDownloaderVirus < lstVLDownloaderVirus.size(); idxDownloaderVirus++)
+	//{
+	//	if (sJsCode.find(lstVLDownloaderVirus.at(idxDownloaderVirus)) != string::npos)
+	//	{
+	//		g_sstrDetectDownloader->bString = true;
+	//	}
+	//}
 
 	if (sJsCode.size() > 0)
 	{
@@ -1632,7 +1628,7 @@ void scDocumentWrite(CVar*pVLocalStack, void *pUserData)
 
 	if (sCodeJS.size() > 0)
 	{
-		g_sstrDetectVirusOther->bDocumentWriteRedirect = true;
+		//g_sstrDetectVirusOther->bDocumentWriteRedirect = true;
 		programJs->Execute(sCodeJS);
 	}
 	
@@ -2017,7 +2013,6 @@ void scWScriptConstructor(CVar*pVLocalStack, void *pUserData)
 void scWScriptCreateObject(CVar*pVLocalStack, void *)
 {
 	string sSearchObject = scGetString("str");
-	g_sstrDetectDownloader->bCreateObject = true;
 	if (sSearchObject == "ADODB.Stream")
 		scReturnDouble(10.10);
 	else
@@ -2049,7 +2044,7 @@ void scStringExpandEnvironmentStrings(CVar *pVLocalStack, void*)
 //------------------------------------------------------------------------------
 void scStringopen(CVar *pVLocalStack, void*)
 {
-	g_sstrDetectDownloader->bOpen = true;
+	//g_sstrDetectDownloader->bOpen = true;
 	scReturnString(NDC_TODAY_GOODDAY);
 }
 //------------------------------------------------------------------------------
@@ -2073,7 +2068,7 @@ void scStringsend(CVar *pVLocalStack, void *pUserData)
 void scDoublesaveToFile(CVar *pVLocalStack, void* pUserData)
 {
 
-	g_sstrDetectDownloader->bsaveToFile = true;
+	//g_sstrDetectDownloader->bsaveToFile = true;
 	scReturnString(NDC_TODAY_GOODDAY);
 }
 
@@ -2116,7 +2111,7 @@ void scStringRun(CVar *pVLocalStack, void *pUserData)
 void scActiveXObjectConstructor(CVar*pVLocalStack, void *)
 {
 	string sData = scGetString("ARRAY");
-	g_sstrDetectDownloader->bCreateObject = true;
+	//g_sstrDetectDownloader->bCreateObject = true;
 	if (sData == "")
 		throw new CRuntimeException(" ActiveXObject loi!!");
 	if (sData == "ADODB.Stream")
