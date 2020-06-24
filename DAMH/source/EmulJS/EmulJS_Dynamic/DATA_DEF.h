@@ -9,7 +9,7 @@
 
 #include <windows.h>
 
-#define DEFAULT_ALIAS_NAME ""
+#define DEFAULT_ALIAS_NAME "param"
 //------------------------------------------------------------------------------
 #define  MAX_LEN_VIRUSNAME 100
 
